@@ -1,0 +1,355 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="pytest" errors="0" failures="118" skipped="0" tests="139" time="1.560" timestamp="2025-11-29T13:17:15.526899" hostname="bogon"><testcase classname="test_common.TestCommonScenarios" name="test_wrong_http_method" time="0.029" /><testcase classname="test_common.TestCommonScenarios" name="test_wrong_http_method_get_for_post" time="0.002" /><testcase classname="test_common.TestCommonScenarios" name="test_wrong_content_type" time="0.001"><failure message="assert 401 in [400, 415]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_common.py:48: in test_wrong_content_type
+    assert response.status_code in [400, 415]
+E   assert 401 in [400, 415]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_common.TestCommonScenarios" name="test_wrong_content_type_put" time="0.004"><failure message="assert 401 in [400, 415]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_common.py:62: in test_wrong_content_type_put
+    assert response.status_code in [400, 415]
+E   assert 401 in [400, 415]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_common.TestCommonScenarios" name="test_invalid_json_format" time="0.002"><failure message="assert 401 == 400&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_common.py:75: in test_invalid_json_format
+    assert response.status_code == 400
+E   assert 401 == 400
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_common.TestCommonScenarios" name="test_malformed_json" time="0.002"><failure message="assert 401 == 400&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_common.py:88: in test_malformed_json
+    assert response.status_code == 400
+E   assert 401 == 400
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_common.TestCommonScenarios" name="test_missing_accept_header" time="0.003"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_common.py:103: in test_missing_accept_header
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_common.TestCommonScenarios" name="test_concurrent_requests" time="0.596"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_common.py:124: in test_concurrent_requests
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_common.TestCommonScenarios" name="test_long_url" time="0.005" /><testcase classname="test_common.TestCommonScenarios" name="test_sql_injection" time="0.005"><failure message="assert 401 in [200, 400]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_common.py:150: in test_sql_injection
+    assert response.status_code in [200, 400]
+E   assert 401 in [200, 400]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_common.TestCommonScenarios" name="test_sql_injection_in_body" time="0.001"><failure message="assert 401 in [200, 400]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_common.py:168: in test_sql_injection_in_body
+    assert response.status_code in [200, 400]
+E   assert 401 in [200, 400]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_common.TestCommonScenarios" name="test_xss_injection" time="0.001"><failure message="assert 401 in [200, 400]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_common.py:184: in test_xss_injection
+    assert response.status_code in [200, 400]
+E   assert 401 in [200, 400]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_common.TestCommonScenarios" name="test_path_traversal" time="0.002" /><testcase classname="test_common.TestResponseValidation" name="test_response_structure_success" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_common.py:206: in test_response_structure_success
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_common.TestResponseValidation" name="test_response_headers" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_common.py:218: in test_response_headers
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_common.TestAuthenticationScenarios" name="test_request_without_token" time="0.014" /><testcase classname="test_common.TestAuthenticationScenarios" name="test_request_with_invalid_token" time="0.014" /><testcase classname="test_common.TestAuthenticationScenarios" name="test_request_with_expired_token" time="0.014" /><testcase classname="test_config_templates_crud.TestCreateTemplate" name="test_create_template_required_fields" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:29: in test_create_template_required_fields
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestCreateTemplate" name="test_create_template_all_fields" time="0.002"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:43: in test_create_template_all_fields
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestCreateTemplate" name="test_create_template_empty_body" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:56: in test_create_template_empty_body
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestCreateTemplate" name="test_create_template_missing_name" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:69: in test_create_template_missing_name
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestCreateTemplate" name="test_create_template_invalid_type" time="0.001"><failure message="assert 401 == 400&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:83: in test_create_template_invalid_type
+    assert response.status_code == 400
+E   assert 401 == 400
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestCreateTemplate" name="test_create_template_empty_name" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:97: in test_create_template_empty_name
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestCreateTemplate" name="test_create_template_name_too_long" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:111: in test_create_template_name_too_long
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestCreateTemplate" name="test_create_template_name_special_chars" time="0.001"><failure message="assert 401 in [200, 400]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:125: in test_create_template_name_special_chars
+    assert response.status_code in [200, 400]
+E   assert 401 in [200, 400]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestCreateTemplate" name="test_create_template_duplicate_name" time="0.002"><failure message="assert 401 in [200, 400]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:150: in test_create_template_duplicate_name
+    assert response.status_code in [200, 400]
+E   assert 401 in [200, 400]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestUpdateTemplate" name="test_update_template_success" time="0.001"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:173: in test_update_template_success
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestUpdateTemplate" name="test_update_template_all_fields" time="0.001"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:195: in test_update_template_all_fields
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestUpdateTemplate" name="test_update_template_empty_body" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:206: in test_update_template_empty_body
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestUpdateTemplate" name="test_update_template_invalid_type" time="0.001"><failure message="assert 401 == 400&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:220: in test_update_template_invalid_type
+    assert response.status_code == 400
+E   assert 401 == 400
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestUpdateTemplate" name="test_update_template_invalid_isdefault" time="0.001"><failure message="assert 401 == 400&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:234: in test_update_template_invalid_isdefault
+    assert response.status_code == 400
+E   assert 401 == 400
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestUpdateTemplate" name="test_update_template_empty_name" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:248: in test_update_template_empty_name
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestUpdateTemplate" name="test_update_template_name_too_long" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:262: in test_update_template_name_too_long
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestUpdateTemplate" name="test_update_template_desc_special_chars" time="0.001"><failure message="assert 401 in [200, 400]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:276: in test_update_template_desc_special_chars
+    assert response.status_code in [200, 400]
+E   assert 401 in [200, 400]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestUpdateTemplate" name="test_update_template_not_exist" time="0.001"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:291: in test_update_template_not_exist
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestDeleteTemplate" name="test_delete_template_success" time="0.001" /><testcase classname="test_config_templates_crud.TestDeleteTemplate" name="test_delete_template_not_exist" time="0.001"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:334: in test_delete_template_not_exist
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestDeleteTemplate" name="test_delete_template_empty_id" time="0.001" /><testcase classname="test_config_templates_crud.TestDeleteTemplate" name="test_delete_template_special_chars" time="0.001" /><testcase classname="test_config_templates_crud.TestDeleteTemplate" name="test_delete_template_id_too_long" time="0.001"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:364: in test_delete_template_id_too_long
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestDeleteTemplate" name="test_delete_default_template" time="0.001"><failure message="assert 401 in [400, 404, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:378: in test_delete_default_template
+    assert response.status_code in [400, 404, 200]
+E   assert 401 in [400, 404, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_crud.TestDeleteTemplate" name="test_delete_template_in_use" time="0.173"><failure message="assert 401 in [400, 404, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_crud.py:392: in test_delete_template_in_use
+    assert response.status_code in [400, 404, 200]
+E   assert 401 in [400, 404, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestAddAllFingerprints" name="test_add_all_fingerprints_success" time="0.007"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:25: in test_add_all_fingerprints_success
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestAddAllFingerprints" name="test_add_all_fingerprints_to_not_exist" time="0.007"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:39: in test_add_all_fingerprints_to_not_exist
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestAddAllFingerprints" name="test_add_all_fingerprints_empty_id" time="0.004" /><testcase classname="test_config_templates_fingerprint.TestAddAllFingerprints" name="test_add_all_fingerprints_no_body" time="0.002"><failure message="assert 401 in [400, 200, 415]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:60: in test_add_all_fingerprints_no_body
+    assert response.status_code in [400, 200, 415]
+E   assert 401 in [400, 200, 415]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestAddAllFingerprints" name="test_add_all_fingerprints_duplicate" time="0.003"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:77: in test_add_all_fingerprints_duplicate
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestAddSelectedFingerprints" name="test_add_selected_fingerprints_success" time="0.016"><failure message="assert 401 in [200, 404, 400]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:98: in test_add_selected_fingerprints_success
+    assert response.status_code in [200, 404, 400]
+E   assert 401 in [200, 404, 400]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestAddSelectedFingerprints" name="test_add_selected_fingerprints_to_not_exist" time="0.002"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:114: in test_add_selected_fingerprints_to_not_exist
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestAddSelectedFingerprints" name="test_add_selected_fingerprints_not_exist" time="0.002"><failure message="assert 401 in [400, 200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:127: in test_add_selected_fingerprints_not_exist
+    assert response.status_code in [400, 200, 404]
+E   assert 401 in [400, 200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestAddSelectedFingerprints" name="test_add_selected_fingerprints_empty_id" time="0.003" /><testcase classname="test_config_templates_fingerprint.TestAddSelectedFingerprints" name="test_add_selected_fingerprints_empty_ids" time="0.002"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:153: in test_add_selected_fingerprints_empty_ids
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestAddSelectedFingerprints" name="test_add_selected_fingerprints_duplicate" time="0.003"><failure message="assert 401 in [200, 400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:171: in test_add_selected_fingerprints_duplicate
+    assert response.status_code in [200, 400, 404]
+E   assert 401 in [200, 400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestDeleteAllFingerprints" name="test_delete_all_fingerprints_success" time="0.002"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:186: in test_delete_all_fingerprints_success
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestDeleteAllFingerprints" name="test_delete_all_fingerprints_from_not_exist" time="0.002"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:200: in test_delete_all_fingerprints_from_not_exist
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestDeleteAllFingerprints" name="test_delete_all_fingerprints_empty_id" time="0.002" /><testcase classname="test_config_templates_fingerprint.TestDeleteAllFingerprints" name="test_delete_all_fingerprints_no_body" time="0.002"><failure message="assert 401 in [400, 200, 415]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:221: in test_delete_all_fingerprints_no_body
+    assert response.status_code in [400, 200, 415]
+E   assert 401 in [400, 200, 415]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestDeleteAllFingerprints" name="test_delete_all_fingerprints_from_empty" time="0.003"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:238: in test_delete_all_fingerprints_from_empty
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestDeleteSelectedFingerprints" name="test_delete_selected_fingerprints_success" time="0.002"><failure message="assert 401 in [200, 404, 400]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:259: in test_delete_selected_fingerprints_success
+    assert response.status_code in [200, 404, 400]
+E   assert 401 in [200, 404, 400]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestDeleteSelectedFingerprints" name="test_delete_selected_fingerprints_from_not_exist" time="0.002"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:275: in test_delete_selected_fingerprints_from_not_exist
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestDeleteSelectedFingerprints" name="test_delete_selected_fingerprints_not_exist" time="0.002"><failure message="assert 401 in [200, 400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:289: in test_delete_selected_fingerprints_not_exist
+    assert response.status_code in [200, 400, 404]
+E   assert 401 in [200, 400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_fingerprint.TestDeleteSelectedFingerprints" name="test_delete_selected_fingerprints_empty_id" time="0.002" /><testcase classname="test_config_templates_fingerprint.TestDeleteSelectedFingerprints" name="test_delete_selected_fingerprints_empty_ids" time="0.002"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_fingerprint.py:315: in test_delete_selected_fingerprints_empty_ids
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestConfigTemplatesPageQuery" name="test_query_templates_default_params" time="0.003"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:28: in test_query_templates_default_params
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestConfigTemplatesPageQuery" name="test_query_templates_with_pagination" time="0.002"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:50: in test_query_templates_with_pagination
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestConfigTemplatesPageQuery" name="test_query_templates_with_filter" time="0.002"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:65: in test_query_templates_with_filter
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestConfigTemplatesPageQuery" name="test_query_templates_missing_params" time="0.002"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:78: in test_query_templates_missing_params
+    assert response.status_code in [400, 200]  # 部分系统可能默认处理
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestConfigTemplatesPageQuery" name="test_query_templates_invalid_page_type" time="0.001"><failure message="assert 401 == 400&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:92: in test_query_templates_invalid_page_type
+    assert response.status_code == 400
+E   assert 401 == 400
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestConfigTemplatesPageQuery" name="test_query_templates_invalid_perpage_type" time="0.002"><failure message="assert 401 == 400&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:106: in test_query_templates_invalid_perpage_type
+    assert response.status_code == 400
+E   assert 401 == 400
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestConfigTemplatesPageQuery" name="test_query_templates_page_zero" time="0.002"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:120: in test_query_templates_page_zero
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestConfigTemplatesPageQuery" name="test_query_templates_page_negative" time="0.002"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:134: in test_query_templates_page_negative
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestConfigTemplatesPageQuery" name="test_query_templates_perpage_zero" time="0.002"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:148: in test_query_templates_perpage_zero
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestConfigTemplatesPageQuery" name="test_query_templates_perpage_large" time="0.002"><failure message="assert 401 in [200, 400]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:162: in test_query_templates_perpage_large
+    assert response.status_code in [200, 400]
+E   assert 401 in [200, 400]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestConfigTemplatesPageQuery" name="test_query_templates_page_large_no_data" time="0.002"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:176: in test_query_templates_page_large_no_data
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateBasicInfo" name="test_query_template_info_view" time="0.002"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:194: in test_query_template_info_view
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateBasicInfo" name="test_query_template_info_edit" time="0.002"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:207: in test_query_template_info_edit
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateBasicInfo" name="test_query_template_info_not_exist" time="0.001"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:217: in test_query_template_info_not_exist
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateBasicInfo" name="test_query_template_info_empty_id" time="0.002" /><testcase classname="test_config_templates_query.TestTemplateBasicInfo" name="test_query_template_info_empty_opttype" time="0.002" /><testcase classname="test_config_templates_query.TestTemplateBasicInfo" name="test_query_template_info_invalid_opttype" time="0.001"><failure message="assert 401 in [400, 404, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:247: in test_query_template_info_invalid_opttype
+    assert response.status_code in [400, 404, 200]
+E   assert 401 in [400, 404, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateBasicInfo" name="test_query_template_info_special_chars" time="0.002" /><testcase classname="test_config_templates_query.TestTemplateFingerprintList" name="test_query_fingerprint_list_default" time="0.001"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:271: in test_query_fingerprint_list_default
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateFingerprintList" name="test_query_fingerprint_list_with_pagination" time="0.001"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:285: in test_query_fingerprint_list_with_pagination
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateFingerprintList" name="test_query_fingerprint_list_with_filter" time="0.001"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:299: in test_query_fingerprint_list_with_filter
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateFingerprintList" name="test_query_fingerprint_list_with_sort" time="0.001"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:313: in test_query_fingerprint_list_with_sort
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateFingerprintList" name="test_query_fingerprint_list_not_exist" time="0.001"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:323: in test_query_fingerprint_list_not_exist
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateFingerprintList" name="test_query_fingerprint_list_empty_id" time="0.002" /><testcase classname="test_config_templates_query.TestTemplateFingerprintList" name="test_query_fingerprint_list_page_negative" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:344: in test_query_fingerprint_list_page_negative
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateFingerprintList" name="test_query_fingerprint_list_perpage_zero" time="0.002"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:355: in test_query_fingerprint_list_perpage_zero
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateFingerprintList" name="test_query_fingerprint_list_special_chars" time="0.002"><failure message="assert 401 in [200, 400]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:366: in test_query_fingerprint_list_special_chars
+    assert response.status_code in [200, 400]
+E   assert 401 in [200, 400]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestFingerprintChoose" name="test_query_choose_default" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:380: in test_query_choose_default
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestFingerprintChoose" name="test_query_choose_selected_true" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:396: in test_query_choose_selected_true
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestFingerprintChoose" name="test_query_choose_selected_false" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:410: in test_query_choose_selected_false
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestFingerprintChoose" name="test_query_choose_by_fingertype" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:421: in test_query_choose_by_fingertype
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestFingerprintChoose" name="test_query_choose_by_assettype" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:432: in test_query_choose_by_assettype
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestFingerprintChoose" name="test_query_choose_by_name" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:443: in test_query_choose_by_name
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestFingerprintChoose" name="test_query_choose_with_sort" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:457: in test_query_choose_with_sort
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestFingerprintChoose" name="test_query_choose_invalid_page" time="0.001"><failure message="assert 401 == 400&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:468: in test_query_choose_invalid_page
+    assert response.status_code == 400
+E   assert 401 == 400
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestFingerprintChoose" name="test_query_choose_perpage_large" time="0.001"><failure message="assert 401 in [200, 400]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:479: in test_query_choose_perpage_large
+    assert response.status_code in [200, 400]
+E   assert 401 in [200, 400]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateIsExist" name="test_check_name_not_exist" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:498: in test_check_name_not_exist
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateIsExist" name="test_check_name_exist" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:516: in test_check_name_exist
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateIsExist" name="test_check_name_self_edit" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:533: in test_check_name_self_edit
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateIsExist" name="test_check_missing_checktype" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:548: in test_check_missing_checktype
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateIsExist" name="test_check_missing_checkvalue" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:563: in test_check_missing_checkvalue
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateIsExist" name="test_check_empty_id" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:578: in test_check_empty_id
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateIsExist" name="test_check_value_long" time="0.001"><failure message="assert 401 in [200, 400]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:593: in test_check_value_long
+    assert response.status_code in [200, 400]
+E   assert 401 in [200, 400]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTemplateIsExist" name="test_check_value_special_chars" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:608: in test_check_value_special_chars
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTaskTemplateList" name="test_query_task_templates" time="0.004"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:622: in test_query_task_templates
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_query.TestTaskTemplateList" name="test_query_task_templates_empty" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_query.py:634: in test_query_task_templates_empty
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestEnableTemplate" name="test_enable_disabled_template" time="0.001"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:23: in test_enable_disabled_template
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestEnableTemplate" name="test_enable_already_enabled_template" time="0.002"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:39: in test_enable_already_enabled_template
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestEnableTemplate" name="test_enable_not_exist_template" time="0.001"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:53: in test_enable_not_exist_template
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestEnableTemplate" name="test_enable_template_empty_id" time="0.002" /><testcase classname="test_config_templates_status.TestEnableTemplate" name="test_enable_template_special_chars" time="0.001"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:73: in test_enable_template_special_chars
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestDisableTemplate" name="test_disable_enabled_template" time="0.002"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:90: in test_disable_enabled_template
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestDisableTemplate" name="test_disable_already_disabled_template" time="0.002"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:106: in test_disable_already_disabled_template
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestDisableTemplate" name="test_disable_not_exist_template" time="0.001"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:120: in test_disable_not_exist_template
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestDisableTemplate" name="test_disable_template_empty_id" time="0.002" /><testcase classname="test_config_templates_status.TestDisableTemplate" name="test_disable_default_template" time="0.001"><failure message="assert 401 in [400, 404, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:143: in test_disable_default_template
+    assert response.status_code in [400, 404, 200]
+E   assert 401 in [400, 404, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestDisableTemplate" name="test_disable_template_in_use" time="0.001"><failure message="assert 401 in [400, 404, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:156: in test_disable_template_in_use
+    assert response.status_code in [400, 404, 200]
+E   assert 401 in [400, 404, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestSetDefaultTemplate" name="test_set_default_template" time="0.002"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:173: in test_set_default_template
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestSetDefaultTemplate" name="test_set_already_default_template" time="0.003"><failure message="assert 401 in [200, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:190: in test_set_already_default_template
+    assert response.status_code in [200, 404]
+E   assert 401 in [200, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestSetDefaultTemplate" name="test_set_default_not_exist_template" time="0.001"><failure message="assert 401 in [400, 404]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:204: in test_set_default_not_exist_template
+    assert response.status_code in [400, 404]
+E   assert 401 in [400, 404]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_config_templates_status.TestSetDefaultTemplate" name="test_set_default_template_empty_id" time="0.003" /><testcase classname="test_config_templates_status.TestSetDefaultTemplate" name="test_set_disabled_template_as_default" time="0.003"><failure message="assert 401 in [400, 404, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_config_templates_status.py:228: in test_set_disabled_template_as_default
+    assert response.status_code in [400, 404, 200]
+E   assert 401 in [400, 404, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestGetGlobalConfig" name="test_get_global_config_success" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:22: in test_get_global_config_success
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestGetGlobalConfig" name="test_get_global_config_first_time" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:45: in test_get_global_config_first_time
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestSaveGlobalConfig" name="test_save_global_config_full" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:63: in test_save_global_config_full
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestSaveGlobalConfig" name="test_save_global_config_partial" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:78: in test_save_global_config_partial
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestSaveGlobalConfig" name="test_save_global_config_empty_body" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:91: in test_save_global_config_empty_body
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestSaveGlobalConfig" name="test_save_global_config_invalid_boolean" time="0.001"><failure message="assert 401 == 400&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:104: in test_save_global_config_invalid_boolean
+    assert response.status_code == 400
+E   assert 401 == 400
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestSaveGlobalConfig" name="test_save_global_config_invalid_integer" time="0.001"><failure message="assert 401 == 400&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:117: in test_save_global_config_invalid_integer
+    assert response.status_code == 400
+E   assert 401 == 400
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestSaveGlobalConfig" name="test_save_global_config_negative_time" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:130: in test_save_global_config_negative_time
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestSaveGlobalConfig" name="test_save_global_config_zero_count" time="0.001"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:143: in test_save_global_config_zero_count
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestSaveGlobalConfig" name="test_save_global_config_large_count" time="0.004"><failure message="assert 401 in [400, 200]&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:156: in test_save_global_config_large_count
+    assert response.status_code in [400, 200]
+E   assert 401 in [400, 200]
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestSaveGlobalConfig" name="test_save_global_config_valid_enum" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:169: in test_save_global_config_valid_enum
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestSaveGlobalConfig" name="test_save_global_config_valid_enum_db" time="0.001"><failure message="assert 401 == 200&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:182: in test_save_global_config_valid_enum_db
+    assert response.status_code == 200
+E   assert 401 == 200
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase><testcase classname="test_global_config.TestSaveGlobalConfig" name="test_save_global_config_invalid_enum" time="0.004"><failure message="assert 401 == 400&#10; +  where 401 = &lt;Response [401]&gt;.status_code">tests/test_global_config.py:195: in test_save_global_config_invalid_enum
+    assert response.status_code == 400
+E   assert 401 == 400
+E    +  where 401 = &lt;Response [401]&gt;.status_code</failure></testcase></testsuite></testsuites>

@@ -34,12 +34,14 @@ def base_url():
 
 @pytest.fixture
 def auth_headers():
-    return {{"Authorization": AUTH_TOKEN}} if AUTH_TOKEN else {{}}
+    # 注意：使用小写的 authorization 作为 header key，不加 Bearer 前缀
+    return {{"authorization": AUTH_TOKEN}} if AUTH_TOKEN else {{}}
 
 @pytest.fixture
 def api_client(base_url, auth_headers):
     session = requests.Session()
     session.headers.update(auth_headers)
+    session.verify = False  # 测试环境禁用SSL验证
     session.timeout = {timeout}
     return session
 ```

@@ -91,8 +91,8 @@ class PytestRunner:
                 if result.stderr:
                     self.config.on_output(result.stderr)
 
-            # 解析结果
-            junit_path = output_path / self.config.junit_xml
+            # 解析结果 - JUnit XML 路径相对于 cwd
+            junit_path = test_path.parent / output_path.name / self.config.junit_xml
             test_results = self._parse_junit_xml(junit_path, test_path)
 
             # 统计
@@ -229,17 +229,17 @@ class PytestRunner:
         """构建 pytest 命令"""
         cmd = ["pytest"]
 
-        # 测试目标
+        # 测试目标 - 使用相对于 cwd (test_path.parent) 的路径
         if test_file:
-            cmd.append(str(test_path / test_file))
+            cmd.append(f"{test_path.name}/{test_file}")
         else:
-            cmd.append(str(test_path))
+            cmd.append(test_path.name)  # 只用目录名 "tests"
 
-        # JUnit XML 报告
-        cmd.append(f"--junitxml={output_path / self.config.junit_xml}")
+        # JUnit XML 报告 - 使用相对于 cwd (test_path.parent) 的路径
+        cmd.append(f"--junitxml={output_path.name}/{self.config.junit_xml}")
 
         # HTML 报告
-        cmd.append(f"--html={output_path / self.config.html_report}")
+        cmd.append(f"--html={output_path.name}/{self.config.html_report}")
         cmd.append("--self-contained-html")
 
         # 超时

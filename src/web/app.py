@@ -79,7 +79,8 @@ class TaskManager:
 def create_output_dir(base_dir: str = "./output") -> str:
     """创建带时间戳的输出目录"""
     timestamp = datetime.now().strftime("%Y-%m-%d_%H%M%S")
-    output_dir = Path(base_dir) / timestamp
+    # 使用绝对路径，避免 Flask 工作目录导致的路径解析错误
+    output_dir = Path(base_dir).resolve() / timestamp
     output_dir.mkdir(parents=True, exist_ok=True)
     return str(output_dir)
 
@@ -255,7 +256,10 @@ def api_download(task_id: str, file_type: str):
     if not output_dir:
         return jsonify({'error': 'Output directory not found'}), 404
 
+    # 确保使用绝对路径
     output_path = Path(output_dir)
+    if not output_path.is_absolute():
+        output_path = Path.cwd() / output_path
 
     file_map = {
         'html': output_path / 'reports' / 'report.html',

@@ -45,7 +45,7 @@ class WorkflowState(Enum):
 class WorkflowConfig:
     """工作流配置"""
     max_healing_attempts: int = 3       # 最大自愈次数
-    cli_timeout: int = 180              # CLI 调用超时
+    cli_timeout: int = 1200             # CLI 调用超时 (20分钟)
     test_timeout: int = 120             # 单个测试用例超时
     on_state_change: Optional[Callable[[WorkflowState, str], None]] = None
     on_log: Optional[Callable[[str, str, str], None]] = None  # (level, phase, message)
@@ -70,8 +70,12 @@ class WorkflowEngine:
         self.config = config or WorkflowConfig()
         self.state = WorkflowState.INIT
 
-        # 初始化组件
-        cli_config = CLIConfig(timeout=self.config.cli_timeout)
+        # 初始化组件 - 设置 CLI 工作目录为输出目录的父目录
+        cli_config = CLIConfig(
+            timeout=self.config.cli_timeout,
+            working_dir=str(Path(context.output_dir).parent.parent),  # 项目根目录
+            on_output=lambda msg: self._log("info", "cli", msg)  # 实时进度回调
+        )
         self.cli_adapter = CLIAdapter(cli_config)
         self.cli_session = CLISession(self.cli_adapter)
         self.prompt_builder = PromptBuilder()
@@ -141,6 +145,11 @@ class WorkflowEngine:
     def _phase_planning(self) -> None:
         """Phase 1: 规划"""
         self._log("info", "planning", "开始规划测试场景...")
+
+        # 预创建输出目录，确保 CLI 可以写入文件
+        output_path = Path(self.context.output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+        self._log("info", "planning", f"输出目录: {output_path}")
 
         # 构建 Prompt
         prompt_pkg = self.prompt_builder.build_plan_prompt(self.context)

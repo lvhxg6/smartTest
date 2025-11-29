@@ -150,8 +150,15 @@
                     <span class="flex items-center gap-1.5"><i class="fa-brands fa-python"></i> Driver v3.10</span>
                     <span class="flex items-center gap-1.5"><i class="fa-solid fa-terminal"></i> Claude CLI</span>
                 </div>
-                <div id="status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-500 border border-slate-700 tracking-wider">
-                    IDLE
+                <div class="flex items-center gap-3">
+                    <!-- 执行计时器 -->
+                    <div id="timer-display" class="hidden px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-cyan-400 border border-slate-700 flex items-center gap-1.5">
+                        <i class="fa-solid fa-stopwatch"></i>
+                        <span id="timer-value">00:00</span>
+                    </div>
+                    <div id="status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-500 border border-slate-700 tracking-wider">
+                        IDLE
+                    </div>
                 </div>
             </div>
 
@@ -163,7 +170,7 @@
 
             <!-- 结果面板 -->
             <div id="result-panel" class="h-0 transition-all duration-500 overflow-hidden border-t border-slate-800 bg-slate-900/90 backdrop-blur">
-                <div class="p-6 grid grid-cols-4 gap-6 h-full items-center">
+                <div class="p-6 grid grid-cols-5 gap-4 h-full items-center">
                     <div class="bg-slate-950/50 rounded p-3 border border-slate-800 flex flex-col justify-center">
                         <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Total Cases</div>
                         <div id="stat-total" class="text-xl font-bold text-white">-</div>
@@ -175,6 +182,10 @@
                     <div class="bg-slate-950/50 rounded p-3 border border-slate-800 flex flex-col justify-center">
                         <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Bugs Found</div>
                         <div id="stat-bugs" class="text-xl font-bold text-brand-warning">-</div>
+                    </div>
+                    <div class="bg-slate-950/50 rounded p-3 border border-slate-800 flex flex-col justify-center">
+                        <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Duration</div>
+                        <div id="stat-duration" class="text-xl font-bold text-cyan-400">-</div>
                     </div>
                     <div class="flex items-center justify-end h-full gap-2">
                         <button onclick="downloadReport('html')" class="bg-brand-accent hover:bg-cyan-300 text-brand-dark font-bold px-4 py-2 rounded text-xs transition shadow-lg shadow-cyan-500/20">
@@ -195,11 +206,72 @@
         let currentTaskId = null;
         let swaggerContent = null;
 
+        // 计时器状态
+        let timerInterval = null;
+        let timerStartTime = null;
+        let finalDuration = null;
+
         const terminal = document.getElementById('terminal-window');
         const statusBadge = document.getElementById('status-badge');
         const resultPanel = document.getElementById('result-panel');
         const startBtn = document.getElementById('btn-start');
         const connectionStatus = document.getElementById('connection-status');
+        const timerDisplay = document.getElementById('timer-display');
+        const timerValue = document.getElementById('timer-value');
+
+        // ============== 计时器控制 ==============
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function formatDuration(seconds) {
+            if (seconds < 60) {
+                return `${seconds}s`;
+            } else if (seconds < 3600) {
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+            } else {
+                const hours = Math.floor(seconds / 3600);
+                const mins = Math.floor((seconds % 3600) / 60);
+                return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+            }
+        }
+
+        function startTimer() {
+            // 重置
+            stopTimer();
+            timerStartTime = Date.now();
+            finalDuration = null;
+
+            // 显示计时器
+            timerDisplay.classList.remove('hidden');
+            timerDisplay.classList.add('flex');
+            timerValue.textContent = '00:00';
+
+            // 每秒更新
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+                timerValue.textContent = formatTime(elapsed);
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            if (timerStartTime) {
+                finalDuration = Math.floor((Date.now() - timerStartTime) / 1000);
+            }
+        }
+
+        function hideTimer() {
+            timerDisplay.classList.add('hidden');
+            timerDisplay.classList.remove('flex');
+        }
 
         // ============== WebSocket 连接 ==============
         function initWebSocket() {
@@ -242,6 +314,7 @@
             socket.on('error', (data) => {
                 if (data.task_id === currentTaskId) {
                     addLog(`错误: ${data.error}`, 'error', 'system');
+                    stopTimer();
                     resetButton();
                 }
             });
@@ -299,6 +372,7 @@
             statusBadge.innerText = state.toUpperCase();
 
             if (state === '已完成' || state === '失败') {
+                stopTimer();
                 resetButton();
             }
         }
@@ -308,6 +382,11 @@
             document.getElementById('stat-total').innerText = summary.total_cases;
             document.getElementById('stat-rate').innerText = summary.pass_rate;
             document.getElementById('stat-bugs').innerText = summary.bugs_found;
+
+            // 显示执行耗时
+            if (finalDuration !== null) {
+                document.getElementById('stat-duration').innerText = formatDuration(finalDuration);
+            }
 
             resultPanel.style.height = '120px';
         }
@@ -365,7 +444,11 @@
             // 清空终端和结果
             terminal.innerHTML = '';
             resultPanel.style.height = '0';
+            document.getElementById('stat-duration').innerText = '-';
             updateStatus('初始化', '');
+
+            // 启动计时器
+            startTimer();
 
             addLog('正在启动任务...', 'info', 'init');
 
@@ -392,10 +475,14 @@
                     socket.emit('subscribe', { task_id: currentTaskId });
                 } else {
                     addLog(`启动失败: ${data.error}`, 'error', 'init');
+                    stopTimer();
+                    hideTimer();
                     resetButton();
                 }
             } catch (error) {
                 addLog(`网络错误: ${error.message}`, 'error', 'init');
+                stopTimer();
+                hideTimer();
                 resetButton();
             }
         }

@@ -17,6 +17,10 @@ logger = logging.getLogger(__name__)
 # 模板目录
 TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 
+# 统一工具权限
+STANDARD_TOOLS = ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
+EDIT_TOOLS = ["Read", "Edit"]  # 用于自愈阶段，只需要读取和编辑
+
 
 @dataclass
 class PromptPackage:
@@ -81,7 +85,7 @@ class PromptBuilder:
 
         return PromptPackage(
             prompt=prompt,
-            allowed_tools=["Read", "Write"],
+            allowed_tools=STANDARD_TOOLS,
             phase="planning"
         )
 
@@ -112,7 +116,7 @@ class PromptBuilder:
 
         return PromptPackage(
             prompt=prompt,
-            allowed_tools=["Read", "Write"],
+            allowed_tools=STANDARD_TOOLS,
             phase="generation"
         )
 
@@ -132,7 +136,7 @@ class PromptBuilder:
 
         return PromptPackage(
             prompt=prompt,
-            allowed_tools=["Read", "Edit"],
+            allowed_tools=EDIT_TOOLS,
             phase="healing_syntax"
         )
 
@@ -171,7 +175,7 @@ class PromptBuilder:
 
         return PromptPackage(
             prompt=prompt,
-            allowed_tools=["Read", "Edit"],
+            allowed_tools=EDIT_TOOLS,
             phase="healing_logic"
         )
 
@@ -203,7 +207,7 @@ class PromptBuilder:
 
         return PromptPackage(
             prompt=prompt,
-            allowed_tools=["Read", "Write"],
+            allowed_tools=STANDARD_TOOLS,
             phase="finalization"
         )
 

@@ -1,0 +1,16 @@
+# BMS WebAPI 接口测试依赖
+
+# 测试框架
+pytest>=7.4.0
+pytest-html>=4.0.0
+pytest-xdist>=3.3.0
+
+# HTTP客户端
+requests>=2.31.0
+urllib3>=2.0.0
+
+# 数据处理
+jsonschema>=4.19.0
+
+# 报告生成
+allure-pytest>=2.13.0

@@ -11,6 +11,8 @@ import subprocess
 import json
 import time
 import logging
+import tempfile
+import os
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, Callable
 from enum import Enum
@@ -29,12 +31,12 @@ class ExecutionMode(Enum):
 @dataclass
 class CLIConfig:
     """CLI 配置"""
-    timeout: int = 180              # 默认 180s (技术文档规定)
+    timeout: int = 1200             # 默认 20 分钟 (复杂任务需要足够时间)
     working_dir: Optional[str] = None
     allowed_tools: List[str] = field(default_factory=lambda: [
         "Read", "Write", "Edit", "Bash", "Glob", "Grep"
     ])
-    output_format: str = "json"
+    output_format: str = "stream-json"  # 流式输出，支持实时进度
     max_retries: int = 3
     retry_delay: float = 2.0
     # 日志回调 (用于 Web UI 实时输出)
@@ -72,19 +74,28 @@ class CLIAdapter:
         except subprocess.TimeoutExpired:
             logger.warning("Claude Code CLI version check timed out")
 
-    def build_command(self, prompt: str, mode: ExecutionMode) -> List[str]:
+    def build_command(self, mode: ExecutionMode) -> List[str]:
         """构建 Claude Code CLI 命令
 
         命令格式：
-        claude -p --output-format json --allowedTools Tool1,Tool2 [--resume sessionId] "prompt"
+        echo "prompt" | claude -p --output-format json --dangerously-skip-permissions --allowedTools Tool1,Tool2 [--resume sessionId]
+
+        注意：Prompt 通过 stdin 传递，避免命令行参数过长
         """
         cmd = ["claude"]
 
-        # 非交互模式
+        # 非交互模式 (从 stdin 读取)
         cmd.append("-p")
 
         # 输出格式
         cmd.extend(["--output-format", self.config.output_format])
+
+        # stream-json 格式需要 --verbose
+        if self.config.output_format == "stream-json":
+            cmd.append("--verbose")
+
+        # 跳过权限确认 (非交互模式必需)
+        cmd.append("--dangerously-skip-permissions")
 
         # 允许的工具
         if self.config.allowed_tools:
@@ -94,17 +105,229 @@ class CLIAdapter:
         if mode == ExecutionMode.SESSION and self.session_id:
             cmd.extend(["--resume", self.session_id])
 
-        # Prompt 作为最后的位置参数
-        cmd.append(prompt)
+        # Prompt 通过 stdin 传递，不再作为命令行参数
 
         return cmd
+
+    def _emit_chunk(self, content: str) -> None:
+        """将模型输出的片段写入回调"""
+        if not self.config.on_output:
+            return
+
+        if not content:
+            return
+
+        cleaned = str(content).strip()
+        if not cleaned:
+            return
+
+        # 控制单条日志长度，避免刷屏
+        max_len = 400
+        if len(cleaned) > max_len:
+            cleaned = cleaned[:max_len] + "..."
+
+        self.config.on_output(f"→ Claude: {cleaned}")
+
+    def _extract_text(self, event: Dict[str, Any]) -> str:
+        """从 stream-json 事件中提取文本内容"""
+        # content_block_delta / message_delta
+        delta = event.get("delta", {})
+        if isinstance(delta, dict):
+            if isinstance(delta.get("text"), str):
+                return delta["text"]
+            if delta.get("type") == "text_delta" and isinstance(delta.get("text"), str):
+                return delta["text"]
+            inner = delta.get("text_delta")
+            if isinstance(inner, dict) and isinstance(inner.get("text"), str):
+                return inner["text"]
+
+        # content_block_start / content_block
+        content_block = event.get("content_block")
+        if isinstance(content_block, dict) and isinstance(content_block.get("text"), str):
+            return content_block["text"]
+
+        # message.* 结构
+        message = event.get("message")
+        if isinstance(message, dict):
+            content = message.get("content")
+            if isinstance(content, str):
+                return content
+            if isinstance(content, list):
+                texts = [
+                    c.get("text")
+                    for c in content
+                    if isinstance(c, dict) and isinstance(c.get("text"), str)
+                ]
+                if texts:
+                    return " ".join(texts)
+
+        # 兜底直接取 text 字段
+        if isinstance(event.get("text"), str):
+            return event["text"]
+
+        return ""
+
+    def _format_tool_input(self, tool_name: str, tool_input: Dict[str, Any]) -> str:
+        """格式化工具输入参数，生成简洁的描述"""
+        if not isinstance(tool_input, dict):
+            return ""
+
+        # 根据不同工具类型提取关键信息
+        if tool_name == "Write":
+            file_path = tool_input.get("file_path", "")
+            file_name = file_path.split("/")[-1] if "/" in file_path else file_path
+            return f"写入 {file_name}"
+        elif tool_name == "Read":
+            file_path = tool_input.get("file_path", "")
+            file_name = file_path.split("/")[-1] if "/" in file_path else file_path
+            return f"读取 {file_name}"
+        elif tool_name == "Edit":
+            file_path = tool_input.get("file_path", "")
+            file_name = file_path.split("/")[-1] if "/" in file_path else file_path
+            return f"编辑 {file_name}"
+        elif tool_name == "Bash":
+            command = tool_input.get("command", "")
+            # 截取命令前 50 字符
+            cmd_preview = command[:50] + "..." if len(command) > 50 else command
+            return f"执行: {cmd_preview}"
+        elif tool_name == "Glob":
+            pattern = tool_input.get("pattern", "")
+            return f"搜索: {pattern}"
+        elif tool_name == "Grep":
+            pattern = tool_input.get("pattern", "")
+            return f"搜索: {pattern}"
+        elif tool_name == "TodoWrite":
+            todos = tool_input.get("todos", [])
+            if todos:
+                count = len(todos)
+                first_todo = todos[0].get("content", "") if todos else ""
+                preview = first_todo[:30] + "..." if len(first_todo) > 30 else first_todo
+                return f"{count}项: {preview}"
+            return ""
+        elif "file_path" in tool_input:
+            file_path = tool_input["file_path"]
+            file_name = file_path.split("/")[-1] if "/" in file_path else file_path
+            return file_name
+
+        return ""
+
+    def _handle_stream_event(self, event: Dict[str, Any]) -> None:
+        """处理流式事件，只回调关键节点
+
+        stream-json 格式:
+        - system: 初始化信息
+        - assistant: Claude 回复，message.content[] 包含 tool_use 或 text
+        - user: 工具执行结果 (tool_use_result)
+        - result: 最终结果
+        """
+        if not self.config.on_output:
+            return
+
+        event_type = event.get("type", "")
+
+        if event_type == "system":
+            # 系统初始化事件 - 显示会话信息
+            subtype = event.get("subtype", "")
+            if subtype == "init":
+                model = event.get("model", "unknown")
+                session_id = event.get("session_id", "")[:8] if event.get("session_id") else ""
+                tools_count = len(event.get("tools", []))
+                self.config.on_output(f"→ 会话初始化: 模型={model}, 工具数={tools_count}")
+            else:
+                self.config.on_output(f"→ 系统事件: {subtype or 'init'}")
+
+        elif event_type == "assistant":
+            # Claude 的回复
+            message = event.get("message", {})
+            content_list = message.get("content", [])
+
+            if isinstance(content_list, list):
+                for content_item in content_list:
+                    if not isinstance(content_item, dict):
+                        continue
+                    item_type = content_item.get("type", "")
+
+                    if item_type == "tool_use":
+                        tool_name = content_item.get("name", "unknown")
+                        tool_input = content_item.get("input", {})
+                        # 获取工具输入的详细描述
+                        detail = self._format_tool_input(tool_name, tool_input)
+                        if detail:
+                            self.config.on_output(f"→ 工具调用: {tool_name} - {detail}")
+                        else:
+                            self.config.on_output(f"→ 工具调用: {tool_name}")
+                    elif item_type == "text":
+                        text = content_item.get("text", "")
+                        if text:
+                            self._emit_chunk(text)
+            else:
+                text = self._extract_text(event)
+                if text:
+                    self._emit_chunk(text)
+
+        elif event_type in {"message_start", "content_block_start"}:
+            # 新版 stream-json 开头事件
+            text = self._extract_text(event)
+            if text:
+                self._emit_chunk(text)
+
+        elif event_type in {"content_block_delta", "message_delta", "delta"}:
+            # 新版增量事件，直接透出
+            text = self._extract_text(event)
+            if text:
+                self._emit_chunk(text)
+
+        elif event_type == "user":
+            # 工具执行结果
+            tool_result = event.get("tool_use_result", {})
+            if tool_result:
+                result_type = tool_result.get("type", "")
+                file_path = tool_result.get("filePath", "")
+                file_name = file_path.split("/")[-1] if file_path and "/" in file_path else file_path
+                if result_type == "create":
+                    self.config.on_output(f"→ 文件创建成功: {file_name}")
+                elif result_type == "edit":
+                    self.config.on_output(f"→ 文件编辑成功: {file_name}")
+                elif result_type:
+                    self.config.on_output(f"→ 工具执行完成: {result_type}")
+            else:
+                # 可能是其他类型的 user 消息（如工具返回的文本结果）
+                message = event.get("message", {})
+                content = message.get("content", [])
+                if isinstance(content, list) and content:
+                    first = content[0]
+                    if isinstance(first, dict) and first.get("type") == "tool_result":
+                        result_content = first.get("content", "")
+                        if isinstance(result_content, str) and result_content:
+                            preview = result_content[:80] + "..." if len(result_content) > 80 else result_content
+                            self.config.on_output(f"→ 工具返回: {preview}")
+
+        elif event_type == "tool_use":
+            # 新版独立的 tool_use 事件
+            tool_name = event.get("tool", event.get("name", "unknown"))
+            self.config.on_output(f"→ 工具调用: {tool_name}")
+
+        elif event_type == "tool_result":
+            tool_name = event.get("tool", event.get("name", "unknown"))
+            is_error = event.get("is_error", False)
+            status = "失败" if is_error else "成功"
+            self.config.on_output(f"→ 工具完成: {tool_name} {status}")
+
+        elif event_type == "result":
+            # 最终结果
+            cost = event.get("total_cost_usd", event.get("cost_usd", 0))
+            num_turns = event.get("num_turns", 0)
+            duration = event.get("duration_ms", 0) / 1000  # 转换为秒
+            self.config.on_output(f"→ 执行完成 (轮次: {num_turns}, 耗时: {duration:.1f}s, 费用: ${cost:.4f})")
+
+        # 忽略未知事件，减少噪音
 
     def execute(
         self,
         prompt: str,
         mode: ExecutionMode = ExecutionMode.SINGLE
     ) -> CLIResult:
-        """执行 Claude Code CLI
+        """执行 Claude Code CLI (流式输出版本)
 
         Args:
             prompt: 发送给 Claude 的 Prompt
@@ -113,61 +336,104 @@ class CLIAdapter:
         Returns:
             CLIResult 包含执行结果
         """
-        cmd = self.build_command(prompt, mode)
+        cmd = self.build_command(mode)
 
         # 日志只显示命令前缀，不暴露完整 prompt
-        logger.info(f"Executing CLI: claude -p ... (mode={mode.value})")
+        logger.info(f"Executing CLI: claude -p ... (mode={mode.value}, prompt_len={len(prompt)})")
 
         start_time = time.time()
+        final_result = None
+        all_events = []
+        stderr_output = ""
 
+        # 创建临时文件存储 prompt，避免管道缓冲区问题
+        prompt_file = None
         try:
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=self.config.timeout,
-                cwd=self.config.working_dir
+            # 写入 prompt 到临时文件
+            prompt_file = tempfile.NamedTemporaryFile(
+                mode='w',
+                suffix='.txt',
+                delete=False,
+                encoding='utf-8'
             )
+            prompt_file.write(prompt)
+            prompt_file.close()
+
+            # 使用 shell 重定向从文件读取
+            shell_cmd = f"{' '.join(cmd)} < {prompt_file.name}"
+            logger.debug(f"Shell command: claude -p ... < {prompt_file.name}")
+
+            process = subprocess.Popen(
+                shell_cmd,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                cwd=self.config.working_dir,
+                start_new_session=True  # 创建新进程组，防止信号传播导致父进程终止
+            )
+
+            # 逐行读取 stream-json 输出
+            for line in process.stdout:
+                line = line.strip()
+                if not line:
+                    continue
+
+                try:
+                    event = json.loads(line)
+                    all_events.append(event)
+
+                    # 处理关键节点回调
+                    self._handle_stream_event(event)
+
+                    # 保存最终结果
+                    if event.get("type") == "result":
+                        final_result = event
+
+                except json.JSONDecodeError:
+                    logger.debug(f"Non-JSON line: {line[:100]}")
+
+            # 读取 stderr
+            stderr_output = process.stderr.read()
+
+            # 等待进程结束，带超时
+            try:
+                return_code = process.wait(timeout=self.config.timeout)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                raise
 
             execution_time = time.time() - start_time
 
-            # 解析输出
-            parsed_output = None
-            actual_result = result.stdout
-            is_error = False
-            session_id = None
-            cost_usd = 0.0
+            # 解析最终结果
+            if final_result:
+                actual_result = final_result.get("result", "")
+                is_error = final_result.get("is_error", False)
+                session_id = final_result.get("session_id")
+                cost_usd = final_result.get("total_cost_usd", final_result.get("cost_usd", 0.0))
 
-            if result.stdout and self.config.output_format == "json":
-                try:
-                    parsed_output = json.loads(result.stdout)
-                    # Claude CLI JSON 格式:
-                    # {"type":"result", "result":"...", "session_id":"...", "cost_usd":...}
-                    actual_result = parsed_output.get("result", result.stdout)
-                    is_error = parsed_output.get("is_error", False)
-                    session_id = parsed_output.get("session_id")
-                    cost_usd = parsed_output.get("cost_usd", 0.0)
+                if session_id:
+                    self.session_id = session_id
 
-                    if session_id:
-                        self.session_id = session_id
-
-                except json.JSONDecodeError:
-                    logger.warning("Failed to parse JSON output, using raw text")
-
-            # 回调输出
-            if self.config.on_output and actual_result:
-                self.config.on_output(actual_result)
-
-            return CLIResult(
-                success=result.returncode == 0 and not is_error,
-                output=actual_result,
-                parsed_output=parsed_output,
-                error=result.stderr if result.returncode != 0 else None,
-                exit_code=result.returncode,
-                execution_time=execution_time,
-                session_id=self.session_id,
-                cost_usd=cost_usd
-            )
+                return CLIResult(
+                    success=return_code == 0 and not is_error,
+                    output=actual_result,
+                    parsed_output=final_result,
+                    error=stderr_output if return_code != 0 else None,
+                    exit_code=return_code,
+                    execution_time=execution_time,
+                    session_id=self.session_id,
+                    cost_usd=cost_usd
+                )
+            else:
+                # 没有收到 result 事件
+                return CLIResult(
+                    success=False,
+                    output="",
+                    error=stderr_output or "No result received from CLI",
+                    exit_code=return_code,
+                    execution_time=execution_time
+                )
 
         except subprocess.TimeoutExpired:
             execution_time = time.time() - start_time
@@ -187,6 +453,13 @@ class CLIAdapter:
                 exit_code=-1,
                 execution_time=execution_time
             )
+        finally:
+            # 清理临时文件
+            if prompt_file and os.path.exists(prompt_file.name):
+                try:
+                    os.unlink(prompt_file.name)
+                except Exception:
+                    pass
 
     def execute_with_retry(
         self,
@@ -302,7 +575,7 @@ class CLISession:
 
 # 便捷函数
 def create_adapter(
-    timeout: int = 180,
+    timeout: int = 1200,
     working_dir: Optional[str] = None,
     allowed_tools: Optional[List[str]] = None,
     on_output: Optional[Callable[[str], None]] = None
@@ -310,7 +583,7 @@ def create_adapter(
     """创建 CLI 适配器的便捷函数
 
     Args:
-        timeout: 超时时间 (秒)
+        timeout: 超时时间 (秒)，默认 20 分钟
         working_dir: 工作目录
         allowed_tools: 允许的工具列表
         on_output: 输出回调函数 (用于实时日志)

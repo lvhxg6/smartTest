@@ -1,0 +1,1190 @@
+{
+  "summary": {
+    "total": 118,
+    "high": 0,
+    "medium": 118,
+    "low": 0
+  },
+  "bugs": [
+    {
+      "testcase_id": "TC-122",
+      "api": "test_wrong_content_type in output/2025-11-29_130517/tests/test_common.py",
+      "scenario": "test_wrong_content_type",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 415]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-122",
+      "api": "test_wrong_content_type_put in output/2025-11-29_130517/tests/test_common.py",
+      "scenario": "test_wrong_content_type_put",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 415]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-123",
+      "api": "test_invalid_json_format in output/2025-11-29_130517/tests/test_common.py",
+      "scenario": "test_invalid_json_format",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 400\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-123",
+      "api": "test_malformed_json in output/2025-11-29_130517/tests/test_common.py",
+      "scenario": "test_malformed_json",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 400\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-124",
+      "api": "test_missing_accept_header in output/2025-11-29_130517/tests/test_common.py",
+      "scenario": "test_missing_accept_header",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-125",
+      "api": "test_concurrent_requests in output/2025-11-29_130517/tests/test_common.py",
+      "scenario": "test_concurrent_requests",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-127",
+      "api": "test_sql_injection in output/2025-11-29_130517/tests/test_common.py",
+      "scenario": "test_sql_injection",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 400]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-127",
+      "api": "test_sql_injection_in_body in output/2025-11-29_130517/tests/test_common.py",
+      "scenario": "test_sql_injection_in_body",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 400]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-127",
+      "api": "test_xss_injection in output/2025-11-29_130517/tests/test_common.py",
+      "scenario": "test_xss_injection",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 400]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "UNKNOWN",
+      "api": "test_response_structure_success in output/2025-11-29_130517/tests/test_common.py",
+      "scenario": "test_response_structure_success",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "UNKNOWN",
+      "api": "test_response_headers in output/2025-11-29_130517/tests/test_common.py",
+      "scenario": "test_response_headers",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-021",
+      "api": "test_create_template_required_fields in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_create_template_required_fields",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-022",
+      "api": "test_create_template_all_fields in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_create_template_all_fields",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-023",
+      "api": "test_create_template_empty_body in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_create_template_empty_body",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-024",
+      "api": "test_create_template_missing_name in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_create_template_missing_name",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-025",
+      "api": "test_create_template_invalid_type in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_create_template_invalid_type",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 400\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-026",
+      "api": "test_create_template_empty_name in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_create_template_empty_name",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-027",
+      "api": "test_create_template_name_too_long in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_create_template_name_too_long",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-028",
+      "api": "test_create_template_name_special_chars in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_create_template_name_special_chars",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 400]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-029",
+      "api": "test_create_template_duplicate_name in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_create_template_duplicate_name",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 400]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-012",
+      "api": "test_update_template_success in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_update_template_success",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-013",
+      "api": "test_update_template_all_fields in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_update_template_all_fields",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-014",
+      "api": "test_update_template_empty_body in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_update_template_empty_body",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-015",
+      "api": "test_update_template_invalid_type in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_update_template_invalid_type",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 400\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-016",
+      "api": "test_update_template_invalid_isdefault in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_update_template_invalid_isdefault",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 400\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-017",
+      "api": "test_update_template_empty_name in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_update_template_empty_name",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-018",
+      "api": "test_update_template_name_too_long in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_update_template_name_too_long",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-019",
+      "api": "test_update_template_desc_special_chars in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_update_template_desc_special_chars",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 400]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-020",
+      "api": "test_update_template_not_exist in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_update_template_not_exist",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-031",
+      "api": "test_delete_template_not_exist in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_delete_template_not_exist",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-034",
+      "api": "test_delete_template_id_too_long in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_delete_template_id_too_long",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-035",
+      "api": "test_delete_default_template in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_delete_default_template",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-036",
+      "api": "test_delete_template_in_use in output/2025-11-29_130517/tests/test_config_templates_crud.py",
+      "scenario": "test_delete_template_in_use",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-086",
+      "api": "test_add_all_fingerprints_success in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_add_all_fingerprints_success",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-087",
+      "api": "test_add_all_fingerprints_to_not_exist in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_add_all_fingerprints_to_not_exist",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-089",
+      "api": "test_add_all_fingerprints_no_body in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_add_all_fingerprints_no_body",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200, 415]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-090",
+      "api": "test_add_all_fingerprints_duplicate in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_add_all_fingerprints_duplicate",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-091",
+      "api": "test_add_selected_fingerprints_success in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_add_selected_fingerprints_success",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404, 400]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-092",
+      "api": "test_add_selected_fingerprints_to_not_exist in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_add_selected_fingerprints_to_not_exist",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-093",
+      "api": "test_add_selected_fingerprints_not_exist in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_add_selected_fingerprints_not_exist",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-095",
+      "api": "test_add_selected_fingerprints_empty_ids in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_add_selected_fingerprints_empty_ids",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-096",
+      "api": "test_add_selected_fingerprints_duplicate in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_add_selected_fingerprints_duplicate",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-097",
+      "api": "test_delete_all_fingerprints_success in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_delete_all_fingerprints_success",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-098",
+      "api": "test_delete_all_fingerprints_from_not_exist in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_delete_all_fingerprints_from_not_exist",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-100",
+      "api": "test_delete_all_fingerprints_no_body in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_delete_all_fingerprints_no_body",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200, 415]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-101",
+      "api": "test_delete_all_fingerprints_from_empty in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_delete_all_fingerprints_from_empty",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-102",
+      "api": "test_delete_selected_fingerprints_success in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_delete_selected_fingerprints_success",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404, 400]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-103",
+      "api": "test_delete_selected_fingerprints_from_not_exist in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_delete_selected_fingerprints_from_not_exist",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-104",
+      "api": "test_delete_selected_fingerprints_not_exist in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_delete_selected_fingerprints_not_exist",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-106",
+      "api": "test_delete_selected_fingerprints_empty_ids in output/2025-11-29_130517/tests/test_config_templates_fingerprint.py",
+      "scenario": "test_delete_selected_fingerprints_empty_ids",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-001",
+      "api": "test_query_templates_default_params in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_templates_default_params",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-002",
+      "api": "test_query_templates_with_pagination in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_templates_with_pagination",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-003",
+      "api": "test_query_templates_with_filter in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_templates_with_filter",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-004",
+      "api": "test_query_templates_missing_params in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_templates_missing_params",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-005",
+      "api": "test_query_templates_invalid_page_type in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_templates_invalid_page_type",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 400\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-006",
+      "api": "test_query_templates_invalid_perpage_type in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_templates_invalid_perpage_type",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 400\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-007",
+      "api": "test_query_templates_page_zero in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_templates_page_zero",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-008",
+      "api": "test_query_templates_page_negative in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_templates_page_negative",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-009",
+      "api": "test_query_templates_perpage_zero in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_templates_perpage_zero",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-010",
+      "api": "test_query_templates_perpage_large in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_templates_perpage_large",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 400]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-011",
+      "api": "test_query_templates_page_large_no_data in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_templates_page_large_no_data",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-053",
+      "api": "test_query_template_info_view in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_template_info_view",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-054",
+      "api": "test_query_template_info_edit in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_template_info_edit",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-055",
+      "api": "test_query_template_info_not_exist in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_template_info_not_exist",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-058",
+      "api": "test_query_template_info_invalid_opttype in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_template_info_invalid_opttype",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-060",
+      "api": "test_query_fingerprint_list_default in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_fingerprint_list_default",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-061",
+      "api": "test_query_fingerprint_list_with_pagination in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_fingerprint_list_with_pagination",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-062",
+      "api": "test_query_fingerprint_list_with_filter in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_fingerprint_list_with_filter",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-063",
+      "api": "test_query_fingerprint_list_with_sort in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_fingerprint_list_with_sort",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-064",
+      "api": "test_query_fingerprint_list_not_exist in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_fingerprint_list_not_exist",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-066",
+      "api": "test_query_fingerprint_list_page_negative in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_fingerprint_list_page_negative",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-067",
+      "api": "test_query_fingerprint_list_perpage_zero in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_fingerprint_list_perpage_zero",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-068",
+      "api": "test_query_fingerprint_list_special_chars in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_fingerprint_list_special_chars",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 400]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-069",
+      "api": "test_query_choose_default in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_choose_default",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-070",
+      "api": "test_query_choose_selected_true in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_choose_selected_true",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-071",
+      "api": "test_query_choose_selected_false in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_choose_selected_false",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-072",
+      "api": "test_query_choose_by_fingertype in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_choose_by_fingertype",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-073",
+      "api": "test_query_choose_by_assettype in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_choose_by_assettype",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-074",
+      "api": "test_query_choose_by_name in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_choose_by_name",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-075",
+      "api": "test_query_choose_with_sort in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_choose_with_sort",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-076",
+      "api": "test_query_choose_invalid_page in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_choose_invalid_page",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 400\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-077",
+      "api": "test_query_choose_perpage_large in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_choose_perpage_large",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 400]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-078",
+      "api": "test_check_name_not_exist in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_check_name_not_exist",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-079",
+      "api": "test_check_name_exist in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_check_name_exist",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-080",
+      "api": "test_check_name_self_edit in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_check_name_self_edit",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-081",
+      "api": "test_check_missing_checktype in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_check_missing_checktype",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-082",
+      "api": "test_check_missing_checkvalue in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_check_missing_checkvalue",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-083",
+      "api": "test_check_empty_id in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_check_empty_id",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-084",
+      "api": "test_check_value_long in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_check_value_long",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 400]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-085",
+      "api": "test_check_value_special_chars in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_check_value_special_chars",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-119",
+      "api": "test_query_task_templates in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_task_templates",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-120",
+      "api": "test_query_task_templates_empty in output/2025-11-29_130517/tests/test_config_templates_query.py",
+      "scenario": "test_query_task_templates_empty",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-037",
+      "api": "test_enable_disabled_template in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_enable_disabled_template",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-038",
+      "api": "test_enable_already_enabled_template in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_enable_already_enabled_template",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-039",
+      "api": "test_enable_not_exist_template in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_enable_not_exist_template",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-041",
+      "api": "test_enable_template_special_chars in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_enable_template_special_chars",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-042",
+      "api": "test_disable_enabled_template in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_disable_enabled_template",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-043",
+      "api": "test_disable_already_disabled_template in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_disable_already_disabled_template",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-044",
+      "api": "test_disable_not_exist_template in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_disable_not_exist_template",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-046",
+      "api": "test_disable_default_template in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_disable_default_template",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-047",
+      "api": "test_disable_template_in_use in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_disable_template_in_use",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-048",
+      "api": "test_set_default_template in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_set_default_template",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-049",
+      "api": "test_set_already_default_template in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_set_already_default_template",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [200, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-050",
+      "api": "test_set_default_not_exist_template in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_set_default_not_exist_template",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-052",
+      "api": "test_set_disabled_template_as_default in output/2025-11-29_130517/tests/test_config_templates_status.py",
+      "scenario": "test_set_disabled_template_as_default",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 404, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-107",
+      "api": "test_get_global_config_success in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_get_global_config_success",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-108",
+      "api": "test_get_global_config_first_time in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_get_global_config_first_time",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-109",
+      "api": "test_save_global_config_full in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_save_global_config_full",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-110",
+      "api": "test_save_global_config_partial in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_save_global_config_partial",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-111",
+      "api": "test_save_global_config_empty_body in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_save_global_config_empty_body",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-112",
+      "api": "test_save_global_config_invalid_boolean in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_save_global_config_invalid_boolean",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 400\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-113",
+      "api": "test_save_global_config_invalid_integer in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_save_global_config_invalid_integer",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 400\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-114",
+      "api": "test_save_global_config_negative_time in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_save_global_config_negative_time",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-115",
+      "api": "test_save_global_config_zero_count in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_save_global_config_zero_count",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-116",
+      "api": "test_save_global_config_large_count in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_save_global_config_large_count",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 in [400, 200]\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-117",
+      "api": "test_save_global_config_valid_enum in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_save_global_config_valid_enum",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-117",
+      "api": "test_save_global_config_valid_enum_db in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_save_global_config_valid_enum_db",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 200\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    },
+    {
+      "testcase_id": "TC-118",
+      "api": "test_save_global_config_invalid_enum in output/2025-11-29_130517/tests/test_global_config.py",
+      "scenario": "test_save_global_config_invalid_enum",
+      "expected": null,
+      "actual": null,
+      "severity": "medium",
+      "root_cause": "断言失败 (轻量模式无法判断是否为Bug): assert 401 == 400\n +  where 401 = <Response [401]>.status_code",
+      "evidence": null
+    }
+  ]
+}
