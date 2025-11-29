@@ -1,0 +1,21 @@
+==================================================
+测试 1: 基础 subprocess.run
+==================================================
+Traceback (most recent call last):
+  File "/Users/liubu/Desktop/work/202511/7.接口自动化测试Agent/poc/debug_test.py", line 144, in <module>
+    results.append(("基础 subprocess", test_basic_subprocess()))
+                                       ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/liubu/Desktop/work/202511/7.接口自动化测试Agent/poc/debug_test.py", line 17, in test_basic_subprocess
+    result = subprocess.run(
+             ^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.12/subprocess.py", line 2116, in _communicate
+    self._check_timeout(endtime, orig_timeout, stdout, stderr)
+  File "/opt/anaconda3/lib/python3.12/subprocess.py", line 1253, in _check_timeout
+    raise TimeoutExpired(
+subprocess.TimeoutExpired: Command '['claude', '-p', '--output-format', 'json', '回复: OK']' timed out after 60 seconds
