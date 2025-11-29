@@ -1,0 +1,54 @@
+测试执行完成，请生成最终报告和整理输出文件。
+
+## 执行结果统计
+- 总用例数: {total_cases}
+- 通过数: {passed}
+- 失败数: {failed}
+- 通过率: {pass_rate}%
+- 总耗时: {duration}s
+
+## Bug列表
+{bug_list}
+
+## 任务
+
+### 1. 更新测试用例文档
+读取 {testcases_file}，更新执行状态：
+- 添加执行时间
+- 更新每个用例的状态 (PASS/FAIL/BUG)
+- 添加执行统计
+
+### 2. 生成Bug报告
+在 {output_dir} 创建 `bug_report.json`:
+```json
+{{
+  "summary": {{
+    "total": {bugs_count},
+    "high": X,
+    "medium": Y,
+    "low": Z
+  }},
+  "bugs": [
+    // Bug详情列表
+  ]
+}}
+```
+
+### 3. 输出文件清单
+
+请确认以下文件已生成:
+- [ ] {output_dir}/testcases.md (已更新执行状态)
+- [ ] {output_dir}/tests/conftest.py
+- [ ] {output_dir}/tests/test_*.py
+- [ ] {output_dir}/bug_report.json
+
+## 完成后
+
+输出执行摘要:
+```
+=== 测试执行完成 ===
+通过率: {pass_rate}%
+通过: {passed} / 失败: {failed} / 总计: {total_cases}
+发现Bug: {bugs_count}个
+输出目录: {output_dir}
+```

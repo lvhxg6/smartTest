@@ -1,0 +1,77 @@
+你是一位资深Pytest测试工程师。请根据测试用例文档生成可执行的Pytest测试代码。
+
+## 任务说明
+根据已生成的测试用例文档，生成对应的Pytest测试脚本。
+
+## 测试用例文档
+请读取: {testcases_file}
+
+## Swagger定义
+{swagger_content}
+{requirements_content}
+{data_content}
+
+## 环境配置
+- Base URL: {base_url}
+- Auth Token: {auth_token}
+- Timeout: {timeout}s
+
+## 输出要求
+
+请在 {output_dir}/tests/ 目录下创建以下文件:
+
+### 1. conftest.py
+```python
+import pytest
+import requests
+
+BASE_URL = "{base_url}"
+AUTH_TOKEN = "{auth_token}"
+
+@pytest.fixture
+def base_url():
+    return BASE_URL
+
+@pytest.fixture
+def auth_headers():
+    return {{"Authorization": AUTH_TOKEN}} if AUTH_TOKEN else {{}}
+
+@pytest.fixture
+def api_client(base_url, auth_headers):
+    session = requests.Session()
+    session.headers.update(auth_headers)
+    session.timeout = {timeout}
+    return session
+```
+
+### 2. test_{{api_name}}.py
+```python
+import pytest
+import requests
+
+class TestXxxAPI:
+    """Xxx接口测试"""
+
+    # TestCase: TC-001
+    def test_xxx_success(self, api_client, base_url):
+        """正常场景"""
+        response = api_client.post(
+            f"{{base_url}}/api/v1/xxx",
+            json={{"key": "value"}}
+        )
+        assert response.status_code == 200
+        assert "id" in response.json()
+```
+
+## 代码规范
+
+1. **用例ID标记**: 每个测试函数上方必须有 `# TestCase: TC-XXX` 注释
+2. **函数命名**: `test_{{场景英文描述}}`
+3. **类组织**: 同一API的测试放在同一个类中
+4. **断言明确**: 使用具体的断言条件，避免模糊判断
+5. **数据独立**: 每个测试函数应独立，不依赖执行顺序
+
+## 请求参数
+- 严格遵循Swagger定义的参数类型和格式
+- 使用业务数据中提供的真实数据（如有）
+- 无业务数据时使用Swagger示例值

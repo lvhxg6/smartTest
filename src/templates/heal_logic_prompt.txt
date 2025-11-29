@@ -1,0 +1,50 @@
+测试断言失败，请判断是代码问题还是业务Bug。
+
+## 断言失败详情
+- 用例ID: {testcase_id}
+- 文件: {file_path}
+- 函数: {function_name}
+- 断言: {assertion}
+
+## 期望 vs 实际
+- 期望值: {expected}
+- 实际值: {actual}
+
+## API响应
+```json
+{response_body}
+```
+{requirements_section}
+
+## 请判断
+
+### 情况A: 断言代码问题
+如果是测试代码的断言写错了（比如期望值写错、断言条件不正确）：
+1. 使用 Edit 工具修正断言代码
+2. 简要说明修改原因
+
+### 情况B: 发现业务Bug
+如果API行为确实不符合业务规则，这是真正的Bug：
+1. 输出以下JSON格式的Bug报告
+2. 不要修改测试代码
+
+```json
+{{
+  "verdict": "BUG_FOUND",
+  "testcase_id": "{testcase_id}",
+  "api": "{api}",
+  "scenario": "场景描述",
+  "expected": "期望行为",
+  "actual": "实际行为",
+  "severity": "HIGH|MEDIUM|LOW",
+  "root_cause": "可能的根因分析"
+}}
+```
+
+## 判断依据
+
+- 对比业务规则文档（如有）
+- 分析API响应是否合理
+- 检查断言条件是否正确
+
+请仔细分析后给出判断。

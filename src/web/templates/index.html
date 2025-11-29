@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus AI Test Agent - 指挥中心</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .cursor-blink { animation: blink 1s step-end infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .log-info { color: #60a5fa; }
+        .log-warning { color: #fbbf24; }
+        .log-error { color: #f87171; }
+        .log-success { color: #4ade80; }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#020617',
+                            panel: '#0f172a',
+                            accent: '#38bdf8',
+                            success: '#22c55e',
+                            error: '#ef4444',
+                            warning: '#eab308',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-dark text-slate-200 h-screen overflow-hidden flex flex-col font-sans selection:bg-brand-accent selection:text-white">
+
+    <!-- 顶部导航栏 -->
+    <header class="h-14 flex items-center justify-between px-6 glass-panel z-20">
+        <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded bg-gradient-to-tr from-blue-600 to-cyan-500 flex items-center justify-center text-white text-sm font-bold shadow-lg shadow-blue-500/20">
+                <i class="fa-solid fa-robot"></i>
+            </div>
+            <h1 class="text-lg font-bold tracking-wide text-white">Nexus <span class="text-brand-accent font-light">Test Agent</span></h1>
+            <span class="text-[10px] bg-slate-800 border border-slate-700 px-1.5 py-0.5 rounded text-slate-400 ml-2">v1.0.0</span>
+        </div>
+        <div class="flex items-center gap-4 text-xs text-slate-400">
+            <div id="connection-status" class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                <span class="font-mono">Connecting...</span>
+            </div>
+            <div class="h-4 w-[1px] bg-slate-800"></div>
+            <div class="w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 hover:border-slate-500 transition cursor-pointer">
+                <i class="fa-solid fa-user text-[10px]"></i>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex overflow-hidden">
+
+        <!-- 左侧：配置面板 -->
+        <section class="w-[420px] flex flex-col border-r border-slate-800 bg-[#0b1120] overflow-y-auto custom-scrollbar">
+            <div class="p-5 space-y-6">
+
+                <!-- 1. 骨架 (Swagger) -->
+                <div>
+                    <label class="flex items-center justify-between text-xs font-bold text-brand-accent mb-2">
+                        <span>1. 骨架层 (Skeleton)</span>
+                        <span class="text-[10px] font-normal text-slate-500">Swagger / OpenAPI</span>
+                    </label>
+                    <div id="swagger-drop" class="border border-dashed border-slate-700 rounded bg-slate-900/50 p-4 text-center hover:border-brand-accent hover:bg-slate-800 transition cursor-pointer group"
+                         ondrop="handleSwaggerDrop(event)" ondragover="event.preventDefault()">
+                        <i class="fa-solid fa-code text-xl text-slate-600 mb-2 group-hover:text-brand-accent transition" id="swagger-icon"></i>
+                        <p class="text-[10px] text-slate-500" id="swagger-hint">拖拽 <code class="text-slate-400">swagger.json</code> 至此处</p>
+                        <input type="file" id="swagger-file" accept=".json,.yaml,.yml" class="hidden" onchange="handleSwaggerFile(event)">
+                    </div>
+                </div>
+
+                <!-- 2. 灵魂 (业务规则) -->
+                <div>
+                    <label class="flex items-center justify-between text-xs font-bold text-brand-accent mb-2">
+                        <span>2. 灵魂层 (The Soul)</span>
+                        <span class="text-[10px] font-normal text-slate-500">可选 - 业务断言规则</span>
+                    </label>
+                    <textarea id="requirements" class="w-full h-24 bg-slate-900 border border-slate-800 rounded p-3 text-[11px] text-slate-300 focus:outline-none focus:border-brand-accent transition resize-none placeholder-slate-600 font-mono leading-relaxed"
+                    placeholder="# 输入业务断言规则 (可选)
+- 库存扣减后必须生成流水记录
+- 非 VIP 用户禁止调用高速通道接口"></textarea>
+                </div>
+
+                <!-- 3. 环境配置 -->
+                <div>
+                    <label class="flex items-center justify-between text-xs font-bold text-brand-accent mb-2">
+                        <span>3. 环境配置 (Config)</span>
+                        <span class="text-[10px] font-normal text-slate-500 text-red-400">* 必填</span>
+                    </label>
+                    <div class="space-y-2 bg-slate-900/50 p-3 rounded border border-slate-800">
+                        <div class="relative group">
+                            <span class="absolute left-3 top-2 text-slate-500 text-xs"><i class="fa-solid fa-globe"></i></span>
+                            <input type="text" id="base-url" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 pl-8 text-xs text-slate-300 focus:border-brand-accent focus:outline-none font-mono" placeholder="https://api.example.com/v1">
+                        </div>
+                        <div class="relative group">
+                            <span class="absolute left-3 top-2 text-slate-500 text-xs"><i class="fa-solid fa-key"></i></span>
+                            <input type="password" id="auth-token" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 pl-8 text-xs text-slate-300 focus:border-brand-accent focus:outline-none font-mono tracking-widest" placeholder="Bearer token (可选)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. 业务数据 -->
+                <div>
+                    <label class="flex items-center justify-between text-xs font-bold text-brand-accent mb-2">
+                        <span>4. 业务数据 (Business Data)</span>
+                        <span class="text-[10px] font-normal text-slate-500">可选 - 测试数据</span>
+                    </label>
+                    <textarea id="data-assets" class="w-full h-20 bg-slate-900 border border-slate-800 rounded p-3 text-[11px] text-slate-300 focus:outline-none focus:border-brand-accent transition resize-none placeholder-slate-600 font-mono leading-relaxed"
+                    placeholder="# 测试数据 (可选)
+| SKU | 库存 | 说明 |
+| SKU001 | 100 | 正常库存 |"></textarea>
+                </div>
+
+            </div>
+
+            <!-- 底部：启动按钮 -->
+            <div class="mt-auto p-5 border-t border-slate-800 bg-[#0b1120]">
+                <button onclick="startMission()" id="btn-start" class="w-full bg-brand-accent/10 hover:bg-brand-accent/20 border border-brand-accent/50 text-brand-accent font-bold py-3 rounded-lg transition transform active:scale-98 flex items-center justify-center gap-2 group">
+                    <i class="fa-solid fa-bolt group-hover:animate-pulse"></i>
+                    <span>启动智能编排</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- 右侧：执行引擎监控 -->
+        <section class="flex-1 flex flex-col bg-[#020617] relative">
+            <!-- 终端顶部条 -->
+            <div class="h-10 border-b border-slate-800 flex items-center px-4 justify-between bg-slate-900">
+                <div class="flex gap-4 text-[10px] font-mono text-slate-500">
+                    <span class="flex items-center gap-1.5"><i class="fa-brands fa-python"></i> Driver v3.10</span>
+                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-terminal"></i> Claude CLI</span>
+                </div>
+                <div id="status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-500 border border-slate-700 tracking-wider">
+                    IDLE
+                </div>
+            </div>
+
+            <!-- 终端内容区 -->
+            <div id="terminal-window" class="flex-1 p-6 font-mono text-xs overflow-y-auto text-slate-300 space-y-1.5 pb-20 scroll-smooth">
+                <div class="text-slate-600">> Nexus Agent System initialized.</div>
+                <div class="text-slate-600">> Waiting for mission configuration...</div>
+            </div>
+
+            <!-- 结果面板 -->
+            <div id="result-panel" class="h-0 transition-all duration-500 overflow-hidden border-t border-slate-800 bg-slate-900/90 backdrop-blur">
+                <div class="p-6 grid grid-cols-4 gap-6 h-full items-center">
+                    <div class="bg-slate-950/50 rounded p-3 border border-slate-800 flex flex-col justify-center">
+                        <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Total Cases</div>
+                        <div id="stat-total" class="text-xl font-bold text-white">-</div>
+                    </div>
+                    <div class="bg-slate-950/50 rounded p-3 border border-slate-800 flex flex-col justify-center">
+                        <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Pass Rate</div>
+                        <div id="stat-rate" class="text-xl font-bold text-brand-success">-</div>
+                    </div>
+                    <div class="bg-slate-950/50 rounded p-3 border border-slate-800 flex flex-col justify-center">
+                        <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Bugs Found</div>
+                        <div id="stat-bugs" class="text-xl font-bold text-brand-warning">-</div>
+                    </div>
+                    <div class="flex items-center justify-end h-full gap-2">
+                        <button onclick="downloadReport('html')" class="bg-brand-accent hover:bg-cyan-300 text-brand-dark font-bold px-4 py-2 rounded text-xs transition shadow-lg shadow-cyan-500/20">
+                            <i class="fa-solid fa-download mr-1"></i> HTML
+                        </button>
+                        <button onclick="downloadReport('json')" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-2 rounded text-xs transition">
+                            <i class="fa-solid fa-bug mr-1"></i> Bugs
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // ============== 全局状态 ==============
+        let socket = null;
+        let currentTaskId = null;
+        let swaggerContent = null;
+
+        const terminal = document.getElementById('terminal-window');
+        const statusBadge = document.getElementById('status-badge');
+        const resultPanel = document.getElementById('result-panel');
+        const startBtn = document.getElementById('btn-start');
+        const connectionStatus = document.getElementById('connection-status');
+
+        // ============== WebSocket 连接 ==============
+        function initWebSocket() {
+            socket = io('/ws');
+
+            socket.on('connect', () => {
+                console.log('WebSocket connected');
+                connectionStatus.innerHTML = `
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                    <span class="font-mono">System Online</span>
+                `;
+            });
+
+            socket.on('disconnect', () => {
+                console.log('WebSocket disconnected');
+                connectionStatus.innerHTML = `
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>
+                    <span class="font-mono">Disconnected</span>
+                `;
+            });
+
+            socket.on('log', (data) => {
+                if (data.task_id === currentTaskId) {
+                    addLog(data.message, data.level, data.phase);
+                }
+            });
+
+            socket.on('state', (data) => {
+                if (data.task_id === currentTaskId) {
+                    updateStatus(data.state, data.message);
+                }
+            });
+
+            socket.on('result', (data) => {
+                if (data.task_id === currentTaskId) {
+                    showResult(data.summary);
+                }
+            });
+
+            socket.on('error', (data) => {
+                if (data.task_id === currentTaskId) {
+                    addLog(`错误: ${data.error}`, 'error', 'system');
+                    resetButton();
+                }
+            });
+        }
+
+        // ============== 日志输出 ==============
+        function addLog(message, level = 'info', phase = '') {
+            const div = document.createElement('div');
+
+            let colorClass = 'text-slate-300';
+            let prefix = '>';
+
+            switch(level) {
+                case 'info':
+                    colorClass = 'log-info';
+                    prefix = '>';
+                    break;
+                case 'warning':
+                    colorClass = 'log-warning';
+                    prefix = '⚠';
+                    break;
+                case 'error':
+                    colorClass = 'log-error';
+                    prefix = '✗';
+                    break;
+                case 'success':
+                    colorClass = 'log-success';
+                    prefix = '✓';
+                    break;
+            }
+
+            const phaseTag = phase ? `[${phase}]` : '';
+            div.className = `${colorClass} font-mono`;
+            div.innerText = `${prefix} ${phaseTag} ${message}`;
+
+            terminal.appendChild(div);
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // ============== 状态更新 ==============
+        function updateStatus(state, message) {
+            const stateConfig = {
+                '初始化': { bg: 'bg-slate-800', text: 'text-slate-400', border: 'border-slate-700' },
+                '规划测试场景': { bg: 'bg-blue-900/30', text: 'text-blue-400', border: 'border-blue-800' },
+                '生成测试代码': { bg: 'bg-purple-900/30', text: 'text-purple-400', border: 'border-purple-800' },
+                '执行测试': { bg: 'bg-cyan-900/30', text: 'text-cyan-400', border: 'border-cyan-800' },
+                '自愈修复中': { bg: 'bg-yellow-900/30', text: 'text-yellow-400', border: 'border-yellow-800' },
+                '生成报告': { bg: 'bg-indigo-900/30', text: 'text-indigo-400', border: 'border-indigo-800' },
+                '已完成': { bg: 'bg-green-900/30', text: 'text-green-400', border: 'border-green-800' },
+                '失败': { bg: 'bg-red-900/30', text: 'text-red-400', border: 'border-red-800' }
+            };
+
+            const config = stateConfig[state] || stateConfig['初始化'];
+            statusBadge.className = `px-2 py-0.5 rounded text-[10px] font-bold ${config.bg} ${config.text} border ${config.border} tracking-wider`;
+            statusBadge.innerText = state.toUpperCase();
+
+            if (state === '已完成' || state === '失败') {
+                resetButton();
+            }
+        }
+
+        // ============== 显示结果 ==============
+        function showResult(summary) {
+            document.getElementById('stat-total').innerText = summary.total_cases;
+            document.getElementById('stat-rate').innerText = summary.pass_rate;
+            document.getElementById('stat-bugs').innerText = summary.bugs_found;
+
+            resultPanel.style.height = '120px';
+        }
+
+        // ============== Swagger 文件处理 ==============
+        function handleSwaggerDrop(event) {
+            event.preventDefault();
+            const file = event.dataTransfer.files[0];
+            if (file) {
+                readSwaggerFile(file);
+            }
+        }
+
+        function handleSwaggerFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                readSwaggerFile(file);
+            }
+        }
+
+        function readSwaggerFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                swaggerContent = e.target.result;
+                document.getElementById('swagger-icon').className = 'fa-solid fa-check text-xl text-green-500 mb-2';
+                document.getElementById('swagger-hint').innerHTML = `<span class="text-green-400">${file.name}</span> 已加载`;
+            };
+            reader.readAsText(file);
+        }
+
+        // 点击也可以选择文件
+        document.getElementById('swagger-drop').addEventListener('click', () => {
+            document.getElementById('swagger-file').click();
+        });
+
+        // ============== 启动任务 ==============
+        async function startMission() {
+            // 验证输入
+            if (!swaggerContent) {
+                alert('请先上传 Swagger 文件');
+                return;
+            }
+
+            const baseUrl = document.getElementById('base-url').value.trim();
+            if (!baseUrl) {
+                alert('请输入 API Base URL');
+                return;
+            }
+
+            // 禁用按钮
+            startBtn.disabled = true;
+            startBtn.querySelector('span').innerText = '编排运行中...';
+            startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
+            // 清空终端和结果
+            terminal.innerHTML = '';
+            resultPanel.style.height = '0';
+            updateStatus('初始化', '');
+
+            addLog('正在启动任务...', 'info', 'init');
+
+            try {
+                const response = await fetch('/api/run', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        swagger: swaggerContent,
+                        base_url: baseUrl,
+                        auth_token: document.getElementById('auth-token').value.trim() || null,
+                        requirements: document.getElementById('requirements').value.trim() || null,
+                        data_assets: document.getElementById('data-assets').value.trim() || null
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    currentTaskId = data.task_id;
+                    addLog(`任务已创建: ${currentTaskId}`, 'success', 'init');
+
+                    // 订阅任务进度
+                    socket.emit('subscribe', { task_id: currentTaskId });
+                } else {
+                    addLog(`启动失败: ${data.error}`, 'error', 'init');
+                    resetButton();
+                }
+            } catch (error) {
+                addLog(`网络错误: ${error.message}`, 'error', 'init');
+                resetButton();
+            }
+        }
+
+        function resetButton() {
+            startBtn.disabled = false;
+            startBtn.querySelector('span').innerText = '启动智能编排';
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        // ============== 下载报告 ==============
+        function downloadReport(type) {
+            if (!currentTaskId) {
+                alert('没有可下载的报告');
+                return;
+            }
+            window.open(`/api/download/${currentTaskId}/${type}`, '_blank');
+        }
+
+        // ============== 初始化 ==============
+        document.addEventListener('DOMContentLoaded', () => {
+            initWebSocket();
+        });
+    </script>
+</body>
+</html>

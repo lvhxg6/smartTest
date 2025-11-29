@@ -10,6 +10,7 @@ openapi-spec-validator>=0.7.0
 # Testing
 pytest>=7.0
 pytest-html>=4.0
+pytest-timeout>=2.2
 
 # Web (Sprint 2)
 flask>=3.0

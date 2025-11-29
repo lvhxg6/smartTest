@@ -1,0 +1,39 @@
+测试代码运行时发生错误，请分析并修复。
+
+## 错误信息
+- 错误类型: {error_type}
+- 文件: {file_path}
+- 函数: {function_name}
+- 行号: {line_number}
+- 用例ID: {testcase_id}
+
+## 错误详情
+```
+{error_message}
+```
+
+## Traceback
+```
+{traceback}
+```
+
+## 修复要求
+
+1. **分析错误原因**: 仔细阅读错误信息和Traceback
+2. **定位问题代码**: 使用 Read 工具读取相关文件
+3. **修复代码**: 使用 Edit 工具修复问题
+4. **保持逻辑**: 只修复语法/运行错误，不改变测试逻辑
+
+## 常见错误类型
+
+- **NameError**: 变量名拼写错误，未定义变量
+- **SyntaxError**: 语法错误，缺少括号/冒号等
+- **ImportError**: 导入模块错误
+- **TypeError**: 类型错误，参数类型不匹配
+- **AttributeError**: 属性不存在
+
+## 输出
+
+修复完成后，简要说明：
+1. 错误原因
+2. 修复方式
