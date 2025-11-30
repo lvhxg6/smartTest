@@ -212,10 +212,28 @@ class CLIAdapter:
         elif tool_name == "TodoWrite":
             todos = tool_input.get("todos", [])
             if todos:
-                count = len(todos)
-                first_todo = todos[0].get("content", "") if todos else ""
-                preview = first_todo[:30] + "..." if len(first_todo) > 30 else first_todo
-                return f"{count}项: {preview}"
+                total = len(todos)
+                # 找到当前正在进行的任务及其索引
+                current_idx = 0
+                current_todo = None
+                for i, t in enumerate(todos):
+                    if isinstance(t, dict) and t.get("status") == "in_progress":
+                        current_idx = i + 1  # 1-based index
+                        current_todo = t
+                        break
+                if current_todo is None:
+                    # 没有 in_progress，显示第一个未完成的
+                    for i, t in enumerate(todos):
+                        if isinstance(t, dict) and t.get("status") != "completed":
+                            current_idx = i + 1
+                            current_todo = t
+                            break
+                if current_todo is None and todos:
+                    current_idx = total
+                    current_todo = todos[-1] if isinstance(todos[-1], dict) else {}
+                content = current_todo.get("content", "") or current_todo.get("activeForm", "") if current_todo else ""
+                preview = content[:30] + "..." if len(content) > 30 else content
+                return f"{current_idx}/{total}: {preview}"
             return ""
         elif "file_path" in tool_input:
             file_path = tool_input["file_path"]
