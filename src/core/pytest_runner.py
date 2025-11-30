@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PytestConfig:
     """Pytest 配置"""
-    timeout: int = 120                  # 单个测试用例超时 (秒)
+    timeout: int = 45                   # 单个测试用例超时 (秒)
     junit_xml: str = "results.xml"      # JUnit XML 输出文件名
     html_report: str = "report.html"    # HTML 报告文件名
     verbose: bool = True                # 详细输出
@@ -484,7 +484,7 @@ class PytestRunner:
 def run_pytest(
     test_dir: str,
     output_dir: str,
-    timeout: int = 120
+    timeout: int = 45
 ) -> PytestResult:
     """运行 pytest 的便捷函数"""
     config = PytestConfig(timeout=timeout)

@@ -52,7 +52,7 @@ class WorkflowConfig:
     """工作流配置"""
     max_healing_attempts: int = 3       # 最大自愈次数
     cli_timeout: int = 1200             # CLI 调用超时 (20分钟)
-    test_timeout: int = 120             # 单个测试用例超时
+    test_timeout: int = 45              # 单个测试用例超时
     enable_exploration: bool = False    # 是否启用依赖探测（默认关闭）
     cancel_event: Optional[Any] = None  # 取消信号（由外部传入 threading.Event）
     on_state_change: Optional[Callable[[WorkflowState, str], None]] = None

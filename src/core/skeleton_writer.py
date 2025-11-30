@@ -14,6 +14,7 @@ from typing import Optional
 CONFTEXT_TEMPLATE = """\"\"\"Pytest 基础配置与通用 fixture\"\"\"
 import pytest
 import requests
+from requests.adapters import HTTPAdapter
 import json
 import urllib3
 from pathlib import Path
@@ -27,6 +28,17 @@ AUTH_TOKEN = "{auth_token}"
 TIMEOUT = {timeout}
 
 EXPLORED_DATA_FILE = Path(__file__).parent.parent / "explored_data.json"
+
+
+class TimeoutHTTPAdapter(HTTPAdapter):
+    \"\"\"带默认超时的 HTTPAdapter\"\"\"
+    def __init__(self, timeout=30, *args, **kwargs):
+        self.timeout = timeout
+        super().__init__(*args, **kwargs)
+
+    def send(self, request, **kwargs):
+        kwargs.setdefault('timeout', self.timeout)
+        return super().send(request, **kwargs)
 
 
 def load_explored_data():
@@ -61,7 +73,10 @@ def api_client(auth_headers):
     session = requests.Session()
     session.headers.update(auth_headers)
     session.verify = False
-    session.timeout = TIMEOUT
+    # 使用 TimeoutHTTPAdapter 设置默认超时
+    adapter = TimeoutHTTPAdapter(timeout=TIMEOUT)
+    session.mount('http://', adapter)
+    session.mount('https://', adapter)
     yield session
     session.close()
 
@@ -117,10 +132,12 @@ class SkeletonWriter:
         requirements_path = tests_dir / "requirements.txt"
 
         if not conftest_path.exists():
+            # 清理 auth_token 中的非 ASCII 字符（避免 HTTP 头 latin-1 编码错误）
+            clean_token = ''.join(c for c in (self.auth_token or '') if ord(c) < 128)
             conftest_path.write_text(
                 CONFTEXT_TEMPLATE.format(
                     base_url=self.base_url,
-                    auth_token=self.auth_token or "",
+                    auth_token=clean_token,
                     timeout=self.timeout
                 ),
                 encoding="utf-8"
