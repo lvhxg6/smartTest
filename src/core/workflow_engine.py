@@ -95,7 +95,10 @@ class WorkflowEngine:
         self.cli_session = CLISession(self.cli_adapter)
         self.prompt_builder = PromptBuilder()
         self.pytest_runner = PytestRunner(
-            PytestConfig(timeout=self.config.test_timeout)
+            PytestConfig(
+                timeout=self.config.test_timeout,
+                on_output=lambda line: self._log("info", "pytest", line.rstrip())
+            )
         )
         self.result_judge = ResultJudge(
             context.test_mode,

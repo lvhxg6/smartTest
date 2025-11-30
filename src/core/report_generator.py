@@ -288,7 +288,7 @@ class BusinessReportGenerator:
         {testcases_html}
 
         <div class="footer">
-            Powered by Nexus AI Test Agent
+            Powered by Smart Dev Mantis
         </div>
     </div>
 

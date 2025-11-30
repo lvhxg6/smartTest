@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Nexus AI Test Agent - CLI 入口
+Smart Dev Mantis - CLI 入口
 
 使用方式:
     python -m src.main --swagger api.json --base-url https://api.example.com
@@ -60,7 +60,7 @@ def print_banner() -> None:
     """打印启动横幅"""
     banner = """
 [bold blue]╔═══════════════════════════════════════════╗
-║       Nexus AI Test Agent v1.0            ║
+║       Smart Dev Mantis v1.0               ║
 ║       Powered by Claude Code CLI          ║
 ╚═══════════════════════════════════════════╝[/bold blue]
     """
@@ -123,7 +123,7 @@ def on_log(level: str, phase: str, message: str) -> None:
 def main() -> int:
     """主入口"""
     parser = argparse.ArgumentParser(
-        description="Nexus AI Test Agent - LLM驱动的API自动化测试",
+        description="Smart Dev Mantis - LLM驱动的API自动化测试",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 示例:

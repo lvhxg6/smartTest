@@ -1,5 +1,5 @@
 """
-Flask Web Application - Nexus AI Test Agent
+Flask Web Application - Smart Dev Mantis
 
 提供:
 - Web UI 页面
@@ -31,7 +31,7 @@ app = Flask(__name__,
     template_folder=str(Path(__file__).parent / "templates"),
     static_folder=str(Path(__file__).parent / "static")
 )
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'nexus-ai-test-agent-secret')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'smart-dev-mantis-secret')
 app.config['TEMPLATES_AUTO_RELOAD'] = True  # 禁用模板缓存
 
 # WebSocket
@@ -366,7 +366,7 @@ def api_cancel(task_id: str):
 def ws_connect():
     """WebSocket 连接"""
     logger.info(f"WebSocket client connected: {request.sid}")
-    emit('connected', {'message': 'Connected to Nexus AI Test Agent'})
+    emit('connected', {'message': 'Connected to Smart Dev Mantis'})
 
 
 @socketio.on('disconnect', namespace='/ws')
@@ -389,7 +389,7 @@ def ws_subscribe(data):
 
 def run_server(host: str = '0.0.0.0', port: int = 5000, debug: bool = False):
     """启动服务器"""
-    logger.info(f"Starting Nexus AI Test Agent Web Server on {host}:{port}")
+    logger.info(f"Starting Smart Dev Mantis Web Server on {host}:{port}")
     socketio.run(app, host=host, port=port, debug=debug, allow_unsafe_werkzeug=True)
 
 

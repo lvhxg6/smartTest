@@ -1,4 +1,4 @@
-# Nexus AI Test Agent - Dependencies
+# Smart Dev Mantis - Dependencies
 
 # Core
 pyyaml>=6.0
