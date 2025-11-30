@@ -57,6 +57,8 @@ class CLIAdapter:
     def __init__(self, config: Optional[CLIConfig] = None):
         self.config = config or CLIConfig()
         self.session_id: Optional[str] = None
+        # 追踪上一次 todos 状态，用于检测变化
+        self._last_todos: List[Dict[str, Any]] = []
         self._validate_cli_available()
 
     def _validate_cli_available(self) -> None:
@@ -213,7 +215,11 @@ class CLIAdapter:
             todos = tool_input.get("todos", [])
             if todos:
                 total = len(todos)
-                # 找到当前正在进行的任务及其索引
+
+                # 更新缓存
+                self._last_todos = [dict(t) if isinstance(t, dict) else {} for t in todos]
+
+                # 找到当前正在进行的任务
                 current_idx = 0
                 current_todo = None
                 for i, t in enumerate(todos):
@@ -229,11 +235,17 @@ class CLIAdapter:
                             current_todo = t
                             break
                 if current_todo is None and todos:
+                    # 所有任务都完成，显示最后一个
                     current_idx = total
                     current_todo = todos[-1] if isinstance(todos[-1], dict) else {}
-                content = current_todo.get("content", "") or current_todo.get("activeForm", "") if current_todo else ""
-                preview = content[:30] + "..." if len(content) > 30 else content
-                return f"{current_idx}/{total}: {preview}"
+
+                # 只显示当前任务
+                if current_todo:
+                    content = current_todo.get("content", "") or current_todo.get("activeForm", "")
+                    preview = content[:25] + "..." if len(content) > 25 else content
+                    status = current_todo.get("status", "pending")
+                    prefix = "✓ " if status == "completed" else ""
+                    return f"{prefix}{current_idx}/{total}: {preview}"
             return ""
         elif "file_path" in tool_input:
             file_path = tool_input["file_path"]
@@ -386,6 +398,9 @@ class CLIAdapter:
             CLIResult 包含执行结果
         """
         cmd = self.build_command(mode)
+
+        # 重置 todo 追踪状态
+        self._last_todos = []
 
         # 日志只显示命令前缀，不暴露完整 prompt
         logger.info(f"Executing CLI: claude -p ... (mode={mode.value}, prompt_len={len(prompt)})")

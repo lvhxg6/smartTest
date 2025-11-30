@@ -86,9 +86,72 @@
 | modifierId | userId | 语义分析：修改者=用户 |
 | parentId | 同资源Id | 语义分析：自引用 |
 
-## 1.4 语义依赖分析
+## 1.4 依赖分析（显式声明 + 语义推断）
 
-分析字段的 description，识别隐式依赖关系：
+### 1.4.1 显式依赖声明识别（最高优先级）
+
+**优先识别** Swagger 中 description / summary 里的显式依赖声明。这些声明由开发者明确标注，置信度最高。
+
+**识别模式**：
+
+| 声明格式 | 示例 | 解析结果 |
+|---------|------|---------|
+| `[依赖] METHOD /path → field` | `[依赖] POST /collections → collectionId` | 依赖 POST /collections 的 collectionId |
+| `[前置] METHOD /path` | `[前置] POST /users` | 需要先调用 POST /users |
+| `依赖 XXX 接口返回的 YYY` | `依赖 POST /categories 接口返回的 categoryId` | 依赖 POST /categories 的 categoryId |
+| `来源于 METHOD /path` | `来源于 GET /tags 接口` | 数据来源于 GET /tags |
+| `需要先调用/创建 XXX` | `需要先创建集合` | 依赖集合资源的创建接口 |
+| `引用自 XXX` | `引用自用户表` | 依赖用户资源 |
+| `x-depends` 扩展字段 | 见下方 | OpenAPI 扩展方式 |
+
+**x-depends 扩展字段格式**（OpenAPI 扩展）：
+```yaml
+/items:
+  post:
+    x-depends:
+      - api: POST /collections
+        field: collectionId
+        required: true
+        description: "物品必须属于某个集合"
+      - api: GET /categories
+        field: categoryId
+        required: false
+        description: "可选的分类"
+```
+
+**显式依赖解析示例**：
+
+```
+接口: POST /items
+summary: "添加物品到集合"
+description: "[依赖] POST /collections → collectionId，[依赖] GET /categories → categoryId (可选)"
+
+→ 解析结果:
+  依赖1: POST /items 依赖 POST /collections 的 collectionId（必填，置信度: 最高-显式声明）
+  依赖2: POST /items 依赖 GET /categories 的 categoryId（可选，置信度: 最高-显式声明）
+  调用顺序: POST /collections → GET /categories → POST /items
+```
+
+```
+接口: POST /orders
+字段: productId
+description: "商品ID，来源于 POST /products 接口返回值"
+
+→ 解析结果:
+  依赖: POST /orders 的 productId 依赖 POST /products（置信度: 最高-显式声明）
+```
+
+```
+接口: DELETE /items/{{itemId}}
+description: "删除物品，需要先调用 POST /items 创建"
+
+→ 解析结果:
+  依赖: DELETE /items/{itemId} 依赖 POST /items 的 itemId（置信度: 最高-显式声明）
+```
+
+### 1.4.2 语义关键词推断（次优先级）
+
+当没有显式声明时，分析字段的 description，识别隐式依赖关系：
 
 **语义关键词映射**：
 - "创建人/创建者/操作人" → userId
@@ -100,20 +163,29 @@
 ```
 字段: "creatorId"
 description: "创建人ID"
-→ 语义推断: 依赖 User 资源的 userId
+→ 语义推断: 依赖 User 资源的 userId（置信度: 中-语义推断）
 
 字段: "parentTemplateId"
 description: "父模板ID"
-→ 语义推断: 依赖 Template 资源（自引用）
+→ 语义推断: 依赖 Template 资源（自引用）（置信度: 中-语义推断）
 
 字段: "orderNo"
 description: "关联的订单编号"
-→ 语义推断: 依赖 Order 资源
+→ 语义推断: 依赖 Order 资源（置信度: 中-语义推断）
 ```
+
+### 1.4.3 依赖置信度等级
+
+| 置信度 | 来源 | 处理方式 |
+|-------|------|---------|
+| **最高** | 显式声明（[依赖]、x-depends等） | 直接采信，严格按声明顺序执行 |
+| **高** | 路径参数 + 字段名匹配 | 采信，拓扑排序 |
+| **中** | 语义关键词推断 | 采信但标记，可能需验证 |
+| **低** | 仅字段名相似 | 谨慎处理，建议验证 |
 
 ## 1.5 构建依赖假设图
 
-基于以上分析，输出依赖假设（JSON格式）：
+基于以上分析（显式声明优先，语义推断补充），输出依赖假设（JSON格式）：
 
 ```json
 {{
@@ -128,11 +200,32 @@ description: "关联的订单编号"
         "PUT /v1/config-templates",
         "DELETE /v1/config-templates/{{templateId}}"
       ]
+    }},
+    "collection": {{
+      "主键字段": ["collectionId"],
+      "名称字段": ["collectionName"],
+      "相关接口": [
+        "GET /v1/collections",
+        "POST /v1/collections"
+      ]
     }}
   }},
   "依赖假设": [
     {{
       "id": "DEP-001",
+      "消费者接口": "POST /v1/items",
+      "消费字段": "collectionId",
+      "字段位置": "body",
+      "是否必填": true,
+      "生产者候选": [
+        {{"接口": "POST /v1/collections", "字段": "collectionId", "位置": "response.entity.collectionId"}}
+      ],
+      "归一化ID": "collectionId",
+      "置信度": "最高",
+      "分析依据": "显式声明: description 包含 [依赖] POST /collections → collectionId"
+    }},
+    {{
+      "id": "DEP-002",
       "消费者接口": "PUT /v1/config-templates",
       "消费字段": "pkCollectTemplate",
       "字段位置": "body",
@@ -143,10 +236,10 @@ description: "关联的订单编号"
       ],
       "归一化ID": "templateId",
       "置信度": "高",
-      "分析依据": "字段名完全匹配"
+      "分析依据": "路径参数 + 字段名匹配"
     }},
     {{
-      "id": "DEP-002",
+      "id": "DEP-003",
       "消费者接口": "POST /v1/config-templates",
       "消费字段": "creatorId",
       "字段位置": "body",
@@ -156,17 +249,22 @@ description: "关联的订单编号"
       ],
       "归一化ID": "userId",
       "置信度": "中",
-      "分析依据": "语义分析: creatorId(创建人) 指向 userId(用户)"
+      "分析依据": "语义推断: creatorId(创建人) 指向 userId(用户)"
     }}
   ],
   "调用顺序建议": [
-    {{"顺序": 1, "接口": "GET /v1/config-templates", "原因": "无依赖，获取现有数据"}},
-    {{"顺序": 2, "接口": "POST /v1/config-templates", "原因": "可选依赖userId，可跳过"}},
-    {{"顺序": 3, "接口": "PUT /v1/config-templates", "原因": "依赖templateId，需step1/2提供"}},
-    {{"顺序": 4, "接口": "DELETE /v1/config-templates/{{id}}", "原因": "依赖templateId"}}
+    {{"顺序": 1, "接口": "GET /v1/collections", "原因": "无依赖，获取现有集合"}},
+    {{"顺序": 2, "接口": "POST /v1/collections", "原因": "无依赖，创建集合（供后续使用）"}},
+    {{"顺序": 3, "接口": "GET /v1/config-templates", "原因": "无依赖，获取现有数据"}},
+    {{"顺序": 4, "接口": "POST /v1/items", "原因": "显式依赖 collectionId，需 step1/2 提供"}},
+    {{"顺序": 5, "接口": "POST /v1/config-templates", "原因": "可选依赖userId，可跳过"}},
+    {{"顺序": 6, "接口": "PUT /v1/config-templates", "原因": "依赖templateId，需step3/5提供"}},
+    {{"顺序": 7, "接口": "DELETE /v1/config-templates/{{id}}", "原因": "依赖templateId，删除操作最后执行"}}
   ]
 }}
 ```
+
+**注意**：调用顺序优先满足显式声明的依赖（置信度最高），然后是路径参数依赖（置信度高），最后是语义推断依赖（置信度中）。
 
 **将静态分析结果保存到: `{output_dir}/dependency_analysis.json`**
 

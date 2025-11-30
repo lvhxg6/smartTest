@@ -72,7 +72,7 @@
     <main class="flex-1 flex overflow-hidden">
 
         <!-- 左侧：配置面板 -->
-        <section class="w-[400px] lg:w-[440px] flex-shrink-0 border-r border-slate-800 bg-[#0b1120] overflow-y-auto custom-scrollbar">
+        <section class="w-[350px] lg:w-[380px] flex-shrink-0 border-r border-slate-800 bg-[#0b1120] overflow-y-auto custom-scrollbar">
             <div class="p-4 space-y-4 flex flex-col h-full">
 
                 <!-- 1. 骨架 (Swagger) -->
@@ -152,42 +152,39 @@
 
         <!-- 右侧：执行引擎监控 -->
         <section class="flex-1 flex flex-col bg-[#020617] relative">
-            <!-- 终端顶部条 -->
-            <div class="h-10 border-b border-slate-800 flex items-center px-4 justify-between bg-slate-900">
-                <div class="flex gap-4 text-[10px] font-mono text-slate-500">
-                    <span class="flex items-center gap-1.5"><i class="fa-brands fa-python"></i> Driver v3.10</span>
-                    <span class="flex items-center gap-1.5"><i class="fa-solid fa-terminal"></i> Claude CLI</span>
-                </div>
-                <div class="flex items-center gap-3">
-                    <!-- 执行计时器 -->
-                    <div id="timer-display" class="hidden px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-cyan-400 border border-slate-700 flex items-center gap-1.5">
-                        <i class="fa-solid fa-stopwatch"></i>
-                        <span id="timer-value">00:00</span>
-                    </div>
-                    <div id="status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-500 border border-slate-700 tracking-wider">
-                        IDLE
-                    </div>
-                </div>
-            </div>
-
-            <!-- 终端内容区（左右分栏：日志 + Todo） -->
+            <!-- 主内容区（左右分栏） -->
             <div class="flex-1 flex overflow-hidden">
-                <!-- 左侧：日志区域 -->
-                <div id="terminal-window" class="flex-1 px-4 py-3 lg:px-6 lg:py-5 font-mono text-[13px] leading-relaxed overflow-y-auto text-slate-300 space-y-1 pb-16 scroll-smooth">
+                <!-- 左侧：终端区域 -->
+                <div class="flex-1 flex flex-col min-w-0">
+                <!-- 终端顶部条 -->
+                <div class="h-10 border-b border-slate-800 flex items-center px-4 bg-slate-900">
+                    <div class="flex gap-4 text-[10px] font-mono text-slate-500">
+                        <span class="flex items-center gap-1.5"><i class="fa-brands fa-python"></i> Driver v3.10</span>
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-terminal"></i> Claude CLI</span>
+                    </div>
+                </div>
+                <!-- 日志区域 -->
+                <div id="terminal-window" class="flex-1 px-4 py-3 lg:px-6 lg:py-4 font-mono text-[11px] leading-relaxed overflow-y-auto text-slate-300 space-y-0.5 pb-16 scroll-smooth">
                     <div class="text-slate-600">> Nexus Agent System initialized.</div>
                     <div class="text-slate-600">> Waiting for mission configuration...</div>
                 </div>
+            </div>
 
-                <!-- 右侧：Todo 进度面板 -->
-                <div id="todo-panel" class="hidden w-[320px] flex-shrink-0 border-l border-slate-800 bg-slate-900/50 overflow-y-auto">
-                    <div class="p-4">
-                        <div class="flex items-center gap-2 mb-3">
-                            <i class="fa-solid fa-list-check text-cyan-500 text-sm"></i>
-                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Task Progress</span>
+            <!-- 右侧：工作流进度边栏 -->
+            <aside id="workflow-sidebar" class="hidden w-[280px] flex-shrink-0 border-l border-slate-800 bg-slate-900/80 flex flex-col overflow-hidden">
+                    <!-- 顶部标题栏 -->
+                    <div class="h-10 px-4 flex items-center justify-between border-b border-slate-800 bg-slate-900">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-diagram-project text-cyan-400 text-sm"></i>
+                            <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Workflow</span>
                         </div>
-                        <ul id="todo-list" class="space-y-2 text-sm font-mono"></ul>
+                        <div id="sidebar-timer" class="text-xs font-mono text-cyan-400">00:00</div>
                     </div>
-                </div>
+                    <!-- 垂直 Timeline -->
+                    <div id="workflow-timeline" class="flex-1 overflow-y-auto px-4 py-4">
+                        <!-- 动态生成 Timeline 节点 -->
+                    </div>
+                </aside>
             </div>
 
             <!-- 结果面板 -->
@@ -240,13 +237,35 @@
         let timerStartTime = null;
         let finalDuration = null;
 
+        // ============== 工作流阶段配置 ==============
+        const PHASES = [
+            { id: 'planning', name: '规划测试场景', state: '规划测试场景' },
+            { id: 'generating', name: '生成测试代码', state: '生成测试代码' },
+            { id: 'executing', name: '执行测试', state: '执行测试' },
+            { id: 'finalizing', name: '生成报告', state: '生成报告' }
+        ];
+
+        // 状态到阶段索引的映射
+        const STATE_TO_PHASE = {
+            '初始化': -1,
+            '规划测试场景': 0,
+            '生成测试代码': 1,
+            '执行测试': 2,
+            '自愈修复中': 2,  // 自愈是执行阶段的子状态
+            '生成报告': 3,
+            '已完成': 4,
+            '失败': -2
+        };
+
+        let currentPhaseIndex = -1;
+        let phaseTodos = {};  // 每个阶段的 todos: {0: [...], 1: [...]}
+        let phaseStartTimes = {};  // 每个阶段的开始时间: {0: timestamp, 1: timestamp, ...}
+        let phaseDurations = {};   // 每个阶段的耗时: {0: "02:15", 1: "01:30", ...}
+
         const terminal = document.getElementById('terminal-window');
-        const statusBadge = document.getElementById('status-badge');
         const resultPanel = document.getElementById('result-panel');
         const startBtn = document.getElementById('btn-start');
         const connectionStatus = document.getElementById('connection-status');
-        const timerDisplay = document.getElementById('timer-display');
-        const timerValue = document.getElementById('timer-value');
 
         // ============== 计时器控制 ==============
         function formatTime(seconds) {
@@ -275,15 +294,9 @@
             timerStartTime = Date.now();
             finalDuration = null;
 
-            // 显示计时器
-            timerDisplay.classList.remove('hidden');
-            timerDisplay.classList.add('flex');
-            timerValue.textContent = '00:00';
-
-            // 每秒更新
+            // 每秒更新边栏计时器
             timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
-                timerValue.textContent = formatTime(elapsed);
+                updateSidebarTimer();
             }, 1000);
         }
 
@@ -297,9 +310,219 @@
             }
         }
 
-        function hideTimer() {
-            timerDisplay.classList.add('hidden');
-            timerDisplay.classList.remove('flex');
+        // 同步更新边栏计时器
+        function updateSidebarTimer() {
+            const sidebarTimer = document.getElementById('sidebar-timer');
+            if (sidebarTimer && timerStartTime) {
+                const elapsed = Math.floor((Date.now() - timerStartTime) / 1000);
+                sidebarTimer.textContent = formatTime(elapsed);
+            }
+        }
+
+        // ============== 工作流 Timeline 管理 ==============
+        // 初始化 Timeline
+        function initWorkflowTimeline() {
+            const container = document.getElementById('workflow-timeline');
+            container.innerHTML = PHASES.map((phase, index) => `
+                <div class="phase-node relative pl-6 ${index < PHASES.length - 1 ? 'pb-5' : ''}" data-phase="${index}">
+                    <!-- 竖线（最后一个阶段不显示） -->
+                    ${index < PHASES.length - 1 ? '<div class="timeline-line absolute left-[9px] top-5 bottom-0 w-0.5 bg-slate-700"></div>' : ''}
+
+                    <!-- 圆点 -->
+                    <div class="timeline-dot absolute left-0 top-0.5 w-5 h-5 rounded-full border-2 border-slate-600 bg-slate-900 flex items-center justify-center transition-all">
+                        <i class="dot-icon fa-regular fa-circle text-[6px] text-slate-600"></i>
+                    </div>
+
+                    <!-- 阶段标题行（可点击展开/折叠） -->
+                    <div class="phase-header flex items-center justify-between cursor-pointer hover:bg-slate-800/30 rounded px-1 -mx-1 transition" onclick="togglePhase(${index})">
+                        <div class="flex items-center gap-1.5">
+                            <i class="phase-chevron fa-solid fa-chevron-right text-[8px] text-slate-600 transition-transform"></i>
+                            <span class="phase-name text-xs font-medium text-slate-500">${phase.name}</span>
+                        </div>
+                        <span class="phase-badge text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-600">等待中</span>
+                    </div>
+
+                    <!-- Todo 列表容器 -->
+                    <div class="phase-todos hidden mt-2 pl-2 space-y-1 border-l border-slate-700/50 ml-1"></div>
+                </div>
+            `).join('');
+        }
+
+        // 更新单个阶段状态
+        function updatePhaseState(phaseIndex, status) {
+            const node = document.querySelector(`.phase-node[data-phase="${phaseIndex}"]`);
+            if (!node) return;
+
+            const dot = node.querySelector('.timeline-dot');
+            const dotIcon = node.querySelector('.dot-icon');
+            const line = node.querySelector('.timeline-line');
+            const name = node.querySelector('.phase-name');
+            const badge = node.querySelector('.phase-badge');
+            const todos = node.querySelector('.phase-todos');
+            const chevron = node.querySelector('.phase-chevron');
+
+            // 重置样式
+            dot.className = 'timeline-dot absolute left-0 top-0.5 w-5 h-5 rounded-full border-2 bg-slate-900 flex items-center justify-center transition-all';
+            name.className = 'phase-name text-xs font-medium';
+            if (chevron) chevron.classList.remove('rotate-90');
+
+            if (status === 'completed') {
+                // 已完成：绿色打勾 + 显示耗时
+                dot.classList.add('border-green-500');
+                dotIcon.className = 'dot-icon fa-solid fa-check text-[8px] text-green-500';
+                if (line) {
+                    line.className = 'timeline-line absolute left-[9px] top-5 bottom-0 w-0.5 bg-green-500/50';
+                }
+                name.classList.add('text-green-400/70');
+                badge.className = 'phase-badge text-[10px] px-1.5 py-0.5 rounded bg-green-900/30 text-green-400';
+                // 显示耗时（如果有）
+                const duration = phaseDurations[phaseIndex];
+                badge.textContent = duration ? duration : '已完成';
+                // 默认折叠，但保留数据供展开查看
+                todos.classList.add('hidden');
+            } else if (status === 'active') {
+                // 进行中：青色脉冲
+                dot.classList.add('border-cyan-400', 'animate-pulse', 'shadow-lg', 'shadow-cyan-500/30');
+                dotIcon.className = 'dot-icon fa-solid fa-circle text-[6px] text-cyan-400';
+                name.classList.add('text-cyan-300');
+                badge.className = 'phase-badge text-[10px] px-1.5 py-0.5 rounded bg-cyan-900/30 text-cyan-400';
+                badge.textContent = '进行中';
+                todos.classList.remove('hidden');
+                if (chevron) chevron.classList.add('rotate-90');
+            } else if (status === 'healing') {
+                // 自愈中：黄色
+                dot.classList.add('border-yellow-400', 'animate-pulse');
+                dotIcon.className = 'dot-icon fa-solid fa-wrench text-[8px] text-yellow-400';
+                name.classList.add('text-yellow-300');
+                badge.className = 'phase-badge text-[10px] px-1.5 py-0.5 rounded bg-yellow-900/30 text-yellow-400';
+                badge.textContent = '自愈中';
+                todos.classList.remove('hidden');
+                if (chevron) chevron.classList.add('rotate-90');
+            } else if (status === 'failed') {
+                // 失败：红色
+                dot.classList.add('border-red-500');
+                dotIcon.className = 'dot-icon fa-solid fa-xmark text-[8px] text-red-500';
+                name.classList.add('text-red-400');
+                badge.className = 'phase-badge text-[10px] px-1.5 py-0.5 rounded bg-red-900/30 text-red-400';
+                badge.textContent = '失败';
+                todos.classList.remove('hidden');
+            } else {
+                // 等待中：灰色
+                dot.classList.add('border-slate-600');
+                dotIcon.className = 'dot-icon fa-regular fa-circle text-[6px] text-slate-600';
+                name.classList.add('text-slate-500');
+                badge.className = 'phase-badge text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-600';
+                badge.textContent = '等待中';
+                todos.classList.add('hidden');
+            }
+        }
+
+        // 切换阶段的折叠/展开状态
+        function togglePhase(phaseIndex) {
+            const node = document.querySelector(`.phase-node[data-phase="${phaseIndex}"]`);
+            if (!node) return;
+
+            const todos = node.querySelector('.phase-todos');
+            const chevron = node.querySelector('.phase-chevron');
+
+            if (todos.classList.contains('hidden')) {
+                todos.classList.remove('hidden');
+                if (chevron) chevron.classList.add('rotate-90');
+            } else {
+                todos.classList.add('hidden');
+                if (chevron) chevron.classList.remove('rotate-90');
+            }
+        }
+
+        // 根据工作流状态更新整个 Timeline
+        function updateWorkflowState(state, message) {
+            const newPhaseIndex = STATE_TO_PHASE[state];
+            if (newPhaseIndex === undefined) return;
+
+            // 记录上一阶段的耗时（当阶段向前推进时）
+            if (currentPhaseIndex >= 0 && currentPhaseIndex < PHASES.length && newPhaseIndex > currentPhaseIndex) {
+                const startTime = phaseStartTimes[currentPhaseIndex];
+                if (startTime) {
+                    const duration = Math.floor((Date.now() - startTime) / 1000);
+                    phaseDurations[currentPhaseIndex] = formatTime(duration);
+                }
+            }
+
+            // 记录新阶段的开始时间
+            if (newPhaseIndex >= 0 && newPhaseIndex < PHASES.length && !phaseStartTimes[newPhaseIndex]) {
+                phaseStartTimes[newPhaseIndex] = Date.now();
+            }
+
+            // 完成状态：记录最后阶段耗时，所有阶段变绿
+            if (state === '已完成') {
+                // 记录最后一个阶段的耗时
+                if (currentPhaseIndex >= 0 && currentPhaseIndex < PHASES.length) {
+                    const startTime = phaseStartTimes[currentPhaseIndex];
+                    if (startTime && !phaseDurations[currentPhaseIndex]) {
+                        const duration = Math.floor((Date.now() - startTime) / 1000);
+                        phaseDurations[currentPhaseIndex] = formatTime(duration);
+                    }
+                }
+                for (let i = 0; i < PHASES.length; i++) {
+                    updatePhaseState(i, 'completed');
+                }
+                currentPhaseIndex = PHASES.length;
+                return;
+            }
+
+            // 失败状态：当前阶段变红
+            if (state === '失败') {
+                const failedPhase = currentPhaseIndex >= 0 ? currentPhaseIndex : 0;
+                updatePhaseState(failedPhase, 'failed');
+                return;
+            }
+
+            // 正常状态更新
+            for (let i = 0; i < PHASES.length; i++) {
+                if (newPhaseIndex < 0) {
+                    // 初始化状态，所有阶段等待
+                    updatePhaseState(i, 'pending');
+                } else if (i < newPhaseIndex) {
+                    updatePhaseState(i, 'completed');
+                } else if (i === newPhaseIndex) {
+                    updatePhaseState(i, state === '自愈修复中' ? 'healing' : 'active');
+                } else {
+                    updatePhaseState(i, 'pending');
+                }
+            }
+
+            currentPhaseIndex = newPhaseIndex;
+        }
+
+        // 渲染 Todo 到当前阶段
+        function updatePhaseTodos(todos) {
+            if (currentPhaseIndex < 0 || currentPhaseIndex >= PHASES.length) return;
+
+            // 保存到对应阶段
+            phaseTodos[currentPhaseIndex] = todos;
+
+            const container = document.querySelector(`.phase-node[data-phase="${currentPhaseIndex}"] .phase-todos`);
+            if (!container) return;
+
+            container.innerHTML = todos.map(todo => {
+                let icon, textClass;
+                switch (todo.status) {
+                    case 'completed':
+                        icon = '<i class="fa-solid fa-check text-green-500 text-[10px]"></i>';
+                        textClass = 'text-green-400/60 line-through';
+                        break;
+                    case 'in_progress':
+                        icon = '<i class="fa-solid fa-spinner fa-spin text-cyan-400 text-[10px]"></i>';
+                        textClass = 'text-cyan-300';
+                        break;
+                    default:
+                        icon = '<i class="fa-regular fa-circle text-slate-600 text-[10px]"></i>';
+                        textClass = 'text-slate-500';
+                }
+                return `<div class="todo-item flex items-center gap-2 text-[11px] py-0.5 min-w-0 ${textClass}" title="${todo.content}">${icon}<span class="truncate flex-1">${todo.content}</span></div>`;
+            }).join('');
+
+            container.classList.remove('hidden');
         }
 
         // ============== WebSocket 连接 ==============
@@ -331,6 +554,7 @@
             socket.on('state', (data) => {
                 if (data.task_id === currentTaskId) {
                     updateStatus(data.state, data.message);
+                    updateWorkflowState(data.state, data.message);
                 }
             });
 
@@ -343,7 +567,7 @@
 
             socket.on('todos', (data) => {
                 if (data.task_id === currentTaskId) {
-                    renderTodos(data.todos);
+                    updatePhaseTodos(data.todos);
                 }
             });
 
@@ -390,53 +614,9 @@
             terminal.scrollTop = terminal.scrollHeight;
         }
 
-        // ============== Todo 进度渲染 ==============
-        function renderTodos(todos) {
-            const panel = document.getElementById('todo-panel');
-            const list = document.getElementById('todo-list');
-
-            if (!todos || todos.length === 0) {
-                panel.classList.add('hidden');
-                return;
-            }
-
-            panel.classList.remove('hidden');
-            list.innerHTML = todos.map(todo => {
-                let icon, textClass;
-                switch (todo.status) {
-                    case 'completed':
-                        icon = '<i class="fa-solid fa-circle-check text-green-500"></i>';
-                        textClass = 'text-green-400/70 line-through';
-                        break;
-                    case 'in_progress':
-                        icon = '<i class="fa-solid fa-spinner fa-spin text-cyan-400"></i>';
-                        textClass = 'text-cyan-300';
-                        break;
-                    default:
-                        icon = '<i class="fa-regular fa-circle text-slate-600"></i>';
-                        textClass = 'text-slate-500';
-                }
-                return `<li class="flex items-center gap-2 ${textClass}">${icon} <span>${todo.content}</span></li>`;
-            }).join('');
-        }
-
         // ============== 状态更新 ==============
         function updateStatus(state, message) {
-            const stateConfig = {
-                '初始化': { bg: 'bg-slate-800', text: 'text-slate-400', border: 'border-slate-700' },
-                '规划测试场景': { bg: 'bg-blue-900/30', text: 'text-blue-400', border: 'border-blue-800' },
-                '生成测试代码': { bg: 'bg-purple-900/30', text: 'text-purple-400', border: 'border-purple-800' },
-                '执行测试': { bg: 'bg-cyan-900/30', text: 'text-cyan-400', border: 'border-cyan-800' },
-                '自愈修复中': { bg: 'bg-yellow-900/30', text: 'text-yellow-400', border: 'border-yellow-800' },
-                '生成报告': { bg: 'bg-indigo-900/30', text: 'text-indigo-400', border: 'border-indigo-800' },
-                '已完成': { bg: 'bg-green-900/30', text: 'text-green-400', border: 'border-green-800' },
-                '失败': { bg: 'bg-red-900/30', text: 'text-red-400', border: 'border-red-800' }
-            };
-
-            const config = stateConfig[state] || stateConfig['初始化'];
-            statusBadge.className = `px-2 py-0.5 rounded text-[10px] font-bold ${config.bg} ${config.text} border ${config.border} tracking-wider`;
-            statusBadge.innerText = state.toUpperCase();
-
+            // 任务完成或失败时停止计时并重置按钮
             if (state === '已完成' || state === '失败') {
                 stopTimer();
                 resetButton();
@@ -511,13 +691,19 @@
             startBtn.classList.add('opacity-50', 'cursor-not-allowed');
             document.getElementById('btn-cancel').disabled = false;
 
-            // 清空终端日志和 Todo 面板
+            // 清空终端日志
             terminal.innerHTML = '';
-            document.getElementById('todo-panel').classList.add('hidden');
-            document.getElementById('todo-list').innerHTML = '';
             resultPanel.style.height = '0';
             document.getElementById('stat-duration').innerText = '-';
             updateStatus('初始化', '');
+
+            // 显示并初始化工作流边栏
+            document.getElementById('workflow-sidebar').classList.remove('hidden');
+            initWorkflowTimeline();
+            currentPhaseIndex = -1;
+            phaseTodos = {};
+            phaseStartTimes = {};
+            phaseDurations = {};
 
             // 启动计时器
             startTimer();
@@ -550,13 +736,11 @@
                 } else {
                     addLog(`启动失败: ${data.error}`, 'error', 'init');
                     stopTimer();
-                    hideTimer();
                     resetButton();
                 }
             } catch (error) {
                 addLog(`网络错误: ${error.message}`, 'error', 'init');
                 stopTimer();
-                hideTimer();
                 resetButton();
             }
         }

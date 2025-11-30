@@ -1,2319 +1,1647 @@
+
 {
-    "openapi": "3.1.0",
-    "info":
-    {
-        "title": "BMS WebAPI 接口文档",
-        "description": "基线管理系统 WebAPI 接口文档",
-        "contact":
-        {
-            "name": "UMS",
-            "email": "support@ums.com"
-        },
-        "version": "1.0.15"
+  "openapi": "3.1.0",
+  "info": {
+    "title": "BMS WebAPI 接口文档",
+    "description": "基线管理系统 WebAPI 接口文档",
+    "contact": {
+      "name": "UMS",
+      "email": "support@ums.com"
     },
-    "servers":
-    [
-        {
-            "url": "https://localhost:4089",
-            "description": "Generated server url"
-        }
-    ],
-    "tags":
-    [
-        {
-            "name": "基线核查模板管理",
-            "description": "基线核查模板的增删改查及配置管理接口"
-        }
-    ],
-    "paths":
+    "version": "1.0.15"
+  },
+  "servers": [
     {
-        "/v1/config-templates":
-        {
-            "get":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "采集指纹模板分页",
-                "description": "分页查询采集指纹模板列表",
-                "operationId": "queryCollectTemplatePage",
-                "parameters":
-                [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "description": "页码",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "integer",
-                            "format": "int32",
-                            "default": 1
-                        }
-                    },
-                    {
-                        "name": "perPage",
-                        "in": "query",
-                        "description": "每页数量",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "integer",
-                            "format": "int32",
-                            "default": 10
-                        }
-                    },
-                    {
-                        "name": "params",
-                        "in": "query",
-                        "description": "查询参数",
-                        "required": true,
-                        "schema":
-                        {
-                            "$ref": "#/components/schemas/AcCollectTemplateDTO"
-                        }
-                    }
-                ],
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/PageDataHandBook"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "put":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "编辑模板",
-                "description": "编辑基线核查模板",
-                "operationId": "update",
-                "requestBody":
-                {
-                    "content":
-                    {
-                        "application/json":
-                        {
-                            "schema":
-                            {
-                                "$ref": "#/components/schemas/AcCollectTemplate"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultHandBook"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "post":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "添加模板",
-                "description": "添加基线核查模板",
-                "operationId": "insert",
-                "requestBody":
-                {
-                    "content":
-                    {
-                        "application/json":
-                        {
-                            "schema":
-                            {
-                                "$ref": "#/components/schemas/AcCollectTemplate"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultHandBook"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/config-templates/temps/{templateId}":
-        {
-            "put":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "删除全部指纹",
-                "description": "删除模板中的全部指纹",
-                "operationId": "delSelectedAll",
-                "parameters":
-                [
-                    {
-                        "name": "templateId",
-                        "in": "path",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody":
-                {
-                    "content":
-                    {
-                        "application/json":
-                        {
-                            "schema":
-                            {
-                                "type": "object",
-                                "additionalProperties":
-                                {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultInteger"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "patch":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "批量删除指纹",
-                "description": "批量删除模板中的指纹",
-                "operationId": "delSelected",
-                "parameters":
-                [
-                    {
-                        "name": "templateId",
-                        "in": "path",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody":
-                {
-                    "content":
-                    {
-                        "application/json":
-                        {
-                            "schema":
-                            {
-                                "type": "object",
-                                "additionalProperties":
-                                {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultInteger"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/config-templates/selectTemplate/{templateId}":
-        {
-            "put":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "添加全部指纹",
-                "description": "为模板添加全部指纹",
-                "operationId": "addSelectedAll",
-                "parameters":
-                [
-                    {
-                        "name": "templateId",
-                        "in": "path",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody":
-                {
-                    "content":
-                    {
-                        "application/json":
-                        {
-                            "schema":
-                            {
-                                "type": "object",
-                                "additionalProperties":
-                                {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultInteger"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "patch":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "添加选中指纹",
-                "description": "为模板添加选中的指纹",
-                "operationId": "addSelected",
-                "parameters":
-                [
-                    {
-                        "name": "templateId",
-                        "in": "path",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "requestBody":
-                {
-                    "content":
-                    {
-                        "application/json":
-                        {
-                            "schema":
-                            {
-                                "type": "object",
-                                "additionalProperties":
-                                {
-                                    "type": "object"
-                                }
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultInteger"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/config-templates/isExist":
-        {
-            "post":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "唯一性校验",
-                "description": "校验模板名称是否重复",
-                "operationId": "isExist",
-                "parameters":
-                [
-                    {
-                        "name": "checkType",
-                        "in": "query",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "checkValue",
-                        "in": "query",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "id",
-                        "in": "query",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultBoolean"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/config-template/globalConf":
-        {
-            "get":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "获取全局配置",
-                "description": "获取基线全局配置",
-                "operationId": "getGlobalConf",
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultTaskGlobalConfig"
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "post":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "保存全局配置",
-                "description": "保存基线全局配置",
-                "operationId": "saveGlobalConf",
-                "requestBody":
-                {
-                    "content":
-                    {
-                        "application/json":
-                        {
-                            "schema":
-                            {
-                                "$ref": "#/components/schemas/TaskGlobalConfig"
-                            }
-                        }
-                    },
-                    "required": true
-                },
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultTaskGlobalConfig"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/config-templates/{templateId}/enable":
-        {
-            "patch":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "启用模板",
-                "description": "启用基线核查模板",
-                "operationId": "enableTemplate",
-                "parameters":
-                [
-                    {
-                        "name": "templateId",
-                        "in": "path",
-                        "description": "模板ID",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultHandBook"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/config-templates/{templateId}/disable":
-        {
-            "patch":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "禁用模板",
-                "description": "禁用基线核查模板",
-                "operationId": "disableTemplate",
-                "parameters":
-                [
-                    {
-                        "name": "templateId",
-                        "in": "path",
-                        "description": "模板ID",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultHandBook"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/config-templates/{templateId}/default":
-        {
-            "patch":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "设置默认模板",
-                "description": "将指定模板设置为默认",
-                "operationId": "defaultTemplate",
-                "parameters":
-                [
-                    {
-                        "name": "templateId",
-                        "in": "path",
-                        "description": "模板ID",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultHandBook"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/config-templates/{templateId}/{optType}/basic":
-        {
-            "get":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "查询模板基本信息",
-                "description": "根据模板ID查询模板基本信息",
-                "operationId": "queryTemplateInfo",
-                "parameters":
-                [
-                    {
-                        "name": "templateId",
-                        "in": "path",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "optType",
-                        "in": "path",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultHandBook"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/config-templates/{templateId}/list":
-        {
-            "get":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "查询模板指纹列表",
-                "description": "分页查询模板下的指纹列表",
-                "operationId": "queryViewPropPage",
-                "parameters":
-                [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "integer",
-                            "format": "int32",
-                            "default": 1
-                        }
-                    },
-                    {
-                        "name": "perPage",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "integer",
-                            "format": "int32",
-                            "default": 10
-                        }
-                    },
-                    {
-                        "name": "templateId",
-                        "in": "path",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "assetTypeIds",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "checkItemName",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "riskLevel",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "fromSpecial",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "field",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "order",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/PageDataCheckitem"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/config-templates/choose":
-        {
-            "get":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "指纹分页列表",
-                "description": "查询指纹分页列表（已选/未选）",
-                "operationId": "queryCollectFingerPage",
-                "parameters":
-                [
-                    {
-                        "name": "page",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "integer",
-                            "format": "int32",
-                            "default": 1
-                        }
-                    },
-                    {
-                        "name": "perPage",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "integer",
-                            "format": "int32",
-                            "default": 10
-                        }
-                    },
-                    {
-                        "name": "tempId",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "fromSpecial",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "selected",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "fingerType",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "assetTypeCode",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "checkItemName",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "templateId",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "field",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    {
-                        "name": "order",
-                        "in": "query",
-                        "required": false,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/PageDataCheckitem"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/config-template/task":
-        {
-            "get":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "查询任务模板列表",
-                "description": "查询用于任务的模板列表",
-                "operationId": "queryWeakTemplate",
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultListHandBook"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "/v1/config-templates/{templateId}":
-        {
-            "delete":
-            {
-                "tags":
-                [
-                    "基线核查模板管理"
-                ],
-                "summary": "删除模板",
-                "description": "删除基线核查模板",
-                "operationId": "deleteTemplate",
-                "parameters":
-                [
-                    {
-                        "name": "templateId",
-                        "in": "path",
-                        "description": "模板ID",
-                        "required": true,
-                        "schema":
-                        {
-                            "type": "string"
-                        }
-                    }
-                ],
-                "responses":
-                {
-                    "200":
-                    {
-                        "description": "OK",
-                        "content":
-                        {
-                            "*/*":
-                            {
-                                "schema":
-                                {
-                                    "$ref": "#/components/schemas/ResultHandBook"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    },
-    "components":
-    {
-        "schemas":
-        {
-            "AcCollectTemplate":
-            {
-                "type": "object",
-                "description": "模板信息",
-                "properties":
-                {
-                    "props":
-                    {
-                        "type": "object",
-                        "additionalProperties":
-                        {
-                            "type": "object"
-                        }
-                    },
-                    "serNum":
-                    {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "key":
-                    {
-                        "type": "string"
-                    },
-                    "name":
-                    {
-                        "type": "string"
-                    },
-                    "pkCollectTemplate":
-                    {
-                        "type": "string"
-                    },
-                    "templateName":
-                    {
-                        "type": "string"
-                    },
-                    "templateVer":
-                    {
-                        "type": "string"
-                    },
-                    "templateDesc":
-                    {
-                        "type": "string"
-                    },
-                    "templateType":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "isDefault":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "isUse":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "createTime":
-                    {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "pkCreator":
-                    {
-                        "type": "string"
-                    },
-                    "mendTimeLast":
-                    {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "pkMender":
-                    {
-                        "type": "string"
-                    },
-                    "isDelete":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "itemCount":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "fromTask":
-                    {
-                        "type": "boolean"
-                    },
-                    "specification":
-                    {
-                        "type": "string"
-                    },
-                    "restrictSpec":
-                    {
-                        "type": "boolean"
-                    }
-                }
-            },
-            "HandBook":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "props":
-                    {
-                        "type": "object",
-                        "additionalProperties":
-                        {
-                            "type": "object"
-                        }
-                    },
-                    "serNum":
-                    {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "key":
-                    {
-                        "type": "string"
-                    },
-                    "name":
-                    {
-                        "type": "string"
-                    },
-                    "pkHandbook":
-                    {
-                        "type": "string"
-                    },
-                    "bookName":
-                    {
-                        "type": "string"
-                    },
-                    "content":
-                    {
-                        "type": "string"
-                    },
-                    "type":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "source":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "pkCreator":
-                    {
-                        "type": "string"
-                    },
-                    "createTime":
-                    {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "pkMender":
-                    {
-                        "type": "string"
-                    },
-                    "mendTimeLast":
-                    {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "isDelete":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "itemCount":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "isDefault":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "isUse":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "version":
-                    {
-                        "type": "string"
-                    },
-                    "specification":
-                    {
-                        "type": "string"
-                    },
-                    "specificationContent":
-                    {
-                        "type": "string"
-                    },
-                    "restrictSpec":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "originalBookName":
-                    {
-                        "type": "string"
-                    }
-                }
-            },
-            "ResultHandBook":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "success":
-                    {
-                        "type": "boolean"
-                    },
-                    "httpStatus":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "message":
-                    {
-                        "type": "string"
-                    },
-                    "entity":
-                    {
-                        "$ref": "#/components/schemas/HandBook"
-                    }
-                }
-            },
-            "ResultInteger":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "success":
-                    {
-                        "type": "boolean"
-                    },
-                    "httpStatus":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "message":
-                    {
-                        "type": "string"
-                    },
-                    "entity":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    }
-                }
-            },
-            "ResultBoolean":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "success":
-                    {
-                        "type": "boolean"
-                    },
-                    "httpStatus":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "message":
-                    {
-                        "type": "string"
-                    },
-                    "entity":
-                    {
-                        "type": "boolean"
-                    }
-                }
-            },
-            "TaskGlobalConfig":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "saveOriginalResult":
-                    {
-                        "type": "boolean"
-                    },
-                    "pageShowOriginalResult":
-                    {
-                        "type": "boolean"
-                    },
-                    "enableAssetTypeCheck":
-                    {
-                        "type": "boolean"
-                    },
-                    "originalResultSaveType":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "originalResultSaveTypeEnum":
-                    {
-                        "type": "string",
-                        "enum":
-                        [
-                            "FILE",
-                            "DB"
-                        ]
-                    },
-                    "taskRedundancyTime":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "pointCount":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    }
-                }
-            },
-            "ResultTaskGlobalConfig":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "success":
-                    {
-                        "type": "boolean"
-                    },
-                    "httpStatus":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "message":
-                    {
-                        "type": "string"
-                    },
-                    "entity":
-                    {
-                        "$ref": "#/components/schemas/TaskGlobalConfig"
-                    }
-                }
-            },
-            "AcCollectTemplateDTO":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "pkCollectTemplate":
-                    {
-                        "type": "string"
-                    },
-                    "templateName":
-                    {
-                        "type": "string"
-                    },
-                    "templateDesc":
-                    {
-                        "type": "string"
-                    },
-                    "templateType":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "isDefault":
-                    {
-                        "type": "string"
-                    },
-                    "isUse":
-                    {
-                        "type": "string"
-                    },
-                    "field":
-                    {
-                        "type": "string"
-                    },
-                    "order":
-                    {
-                        "type": "string"
-                    },
-                    "specification":
-                    {
-                        "type": "string"
-                    },
-                    "updateStartTime":
-                    {
-                        "type": "string"
-                    },
-                    "updateEndTime":
-                    {
-                        "type": "string"
-                    }
-                }
-            },
-            "PageDataHandBook":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "data":
-                    {
-                        "type": "array",
-                        "items":
-                        {
-                            "$ref": "#/components/schemas/HandBook"
-                        }
-                    },
-                    "totalCount":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "pageCount":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "perPage":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "page":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    }
-                }
-            },
-            "Checkitem":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "props":
-                    {
-                        "type": "object",
-                        "additionalProperties":
-                        {
-                            "type": "object"
-                        }
-                    },
-                    "serNum":
-                    {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "key":
-                    {
-                        "type": "string"
-                    },
-                    "name":
-                    {
-                        "type": "string"
-                    },
-                    "checkitemId":
-                    {
-                        "type": "string"
-                    },
-                    "chnCode":
-                    {
-                        "type": "string"
-                    },
-                    "engCode":
-                    {
-                        "type": "string"
-                    },
-                    "content":
-                    {
-                        "type": "string"
-                    },
-                    "property":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "templateId":
-                    {
-                        "type": "string"
-                    },
-                    "styleId":
-                    {
-                        "type": "string"
-                    },
-                    "createDate":
-                    {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "state":
-                    {
-                        "type": "string",
-                        "enum":
-                        [
-                            "TEMP",
-                            "OK",
-                            "ISSUE"
-                        ]
-                    },
-                    "orgId":
-                    {
-                        "type": "string"
-                    },
-                    "orgName":
-                    {
-                        "type": "string"
-                    },
-                    "creatorId":
-                    {
-                        "type": "string"
-                    },
-                    "creatorName":
-                    {
-                        "type": "string"
-                    },
-                    "menderId":
-                    {
-                        "type": "string"
-                    },
-                    "mender":
-                    {
-                        "type": "string"
-                    },
-                    "createTime":
-                    {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "lastMendTime":
-                    {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "isRequired":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "fromSpecification":
-                    {
-                        "type": "string"
-                    },
-                    "fromSpecificationContent":
-                    {
-                        "type": "string"
-                    },
-                    "assetTypeFullName":
-                    {
-                        "type": "string"
-                    },
-                    "fromSpecCode":
-                    {
-                        "type": "string"
-                    },
-                    "versionNum":
-                    {
-                        "type": "string"
-                    },
-                    "fs1":
-                    {
-                        "type": "string"
-                    },
-                    "fs2":
-                    {
-                        "type": "string"
-                    },
-                    "fs3":
-                    {
-                        "type": "string"
-                    },
-                    "fs4":
-                    {
-                        "type": "string"
-                    },
-                    "fs5":
-                    {
-                        "type": "string"
-                    },
-                    "fi1":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "fi2":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "fi3":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "fi4":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "fi5":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "fn1":
-                    {
-                        "type": "number",
-                        "format": "double"
-                    },
-                    "fn2":
-                    {
-                        "type": "number",
-                        "format": "double"
-                    },
-                    "fn3":
-                    {
-                        "type": "number",
-                        "format": "double"
-                    },
-                    "fn4":
-                    {
-                        "type": "number",
-                        "format": "double"
-                    },
-                    "relatedCheckitemId":
-                    {
-                        "type": "string"
-                    },
-                    "baseline":
-                    {
-                        "$ref": "#/components/schemas/CheckitemBaseline"
-                    },
-                    "templet":
-                    {
-                        "$ref": "#/components/schemas/Script"
-                    },
-                    "isOs":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "source":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "soIds":
-                    {
-                        "type": "array",
-                        "items":
-                        {
-                            "type": "string"
-                        }
-                    },
-                    "values":
-                    {
-                        "type": "array",
-                        "items":
-                        {
-                            "$ref": "#/components/schemas/CheckitemBaselineValue"
-                        }
-                    },
-                    "checkitemSoRelation":
-                    {
-                        "$ref": "#/components/schemas/CheckitemSoRelation"
-                    },
-                    "groupCheckitemId":
-                    {
-                        "type": "string"
-                    },
-                    "miningType":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "pkBaseDataVer":
-                    {
-                        "type": "string"
-                    },
-                    "baseDataVerHis":
-                    {
-                        "type": "string"
-                    },
-                    "isDeleted":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "propertyText":
-                    {
-                        "type": "string"
-                    },
-                    "typeName":
-                    {
-                        "type": "string"
-                    },
-                    "middleLevel":
-                    {
-                        "type": "boolean"
-                    },
-                    "highLevel":
-                    {
-                        "type": "boolean"
-                    },
-                    "lowLevel":
-                    {
-                        "type": "boolean"
-                    }
-                }
-            },
-            "CheckitemBaseline":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "props":
-                    {
-                        "type": "object",
-                        "additionalProperties":
-                        {
-                            "type": "object"
-                        }
-                    },
-                    "serNum":
-                    {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "key":
-                    {
-                        "type": "string"
-                    },
-                    "name":
-                    {
-                        "type": "string"
-                    },
-                    "checkitemId":
-                    {
-                        "type": "string"
-                    },
-                    "inspectType":
-                    {
-                        "type": "string",
-                        "enum":
-                        [
-                            "MANUAL",
-                            "AUTO"
-                        ]
-                    },
-                    "inspectTypeId":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "inspectMethod":
-                    {
-                        "type": "string"
-                    },
-                    "judgeCondition":
-                    {
-                        "type": "string"
-                    },
-                    "memo":
-                    {
-                        "type": "string"
-                    },
-                    "inspectScriptid":
-                    {
-                        "type": "string"
-                    },
-                    "inspectScriptName":
-                    {
-                        "type": "string"
-                    },
-                    "parseExpression":
-                    {
-                        "type": "string"
-                    },
-                    "relation":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "judgeSymbol":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "baselineValue":
-                    {
-                        "type": "string"
-                    },
-                    "isEligible":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "problemDesc":
-                    {
-                        "type": "string"
-                    },
-                    "riskLevel":
-                    {
-                        "type": "string"
-                    },
-                    "riskLevelContent":
-                    {
-                        "type": "string"
-                    },
-                    "reinforceType":
-                    {
-                        "type": "string"
-                    },
-                    "reinforceTypeContent":
-                    {
-                        "type": "string"
-                    },
-                    "suggestion":
-                    {
-                        "type": "string"
-                    },
-                    "supplement":
-                    {
-                        "type": "string"
-                    },
-                    "anaylzeClass":
-                    {
-                        "type": "string"
-                    },
-                    "valueId":
-                    {
-                        "type": "string"
-                    },
-                    "judgeExpression":
-                    {
-                        "type": "string"
-                    },
-                    "judgeExpressionCode":
-                    {
-                        "type": "string"
-                    },
-                    "inspectTypeText":
-                    {
-                        "type": "string"
-                    }
-                }
-            },
-            "CheckitemBaselineValue":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "props":
-                    {
-                        "type": "object",
-                        "additionalProperties":
-                        {
-                            "type": "object"
-                        }
-                    },
-                    "serNum":
-                    {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "key":
-                    {
-                        "type": "string"
-                    },
-                    "name":
-                    {
-                        "type": "string"
-                    },
-                    "valueId":
-                    {
-                        "type": "string"
-                    },
-                    "value":
-                    {
-                        "type": "string"
-                    },
-                    "valueDesc":
-                    {
-                        "type": "string"
-                    },
-                    "relation":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "level":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "isDefault":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "checkitemId":
-                    {
-                        "type": "string"
-                    }
-                }
-            },
-            "CheckitemSoRelation":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "props":
-                    {
-                        "type": "object",
-                        "additionalProperties":
-                        {
-                            "type": "object"
-                        }
-                    },
-                    "serNum":
-                    {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "key":
-                    {
-                        "type": "string"
-                    },
-                    "name":
-                    {
-                        "type": "string"
-                    },
-                    "relationId":
-                    {
-                        "type": "string"
-                    },
-                    "checkitemId":
-                    {
-                        "type": "string"
-                    },
-                    "soId":
-                    {
-                        "type": "string"
-                    },
-                    "soParentId":
-                    {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "soSeriescode":
-                    {
-                        "type": "string"
-                    },
-                    "seriesCode":
-                    {
-                        "type": "string"
-                    }
-                }
-            },
-            "PageDataCheckitem":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "data":
-                    {
-                        "type": "array",
-                        "items":
-                        {
-                            "$ref": "#/components/schemas/Checkitem"
-                        }
-                    },
-                    "totalCount":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "pageCount":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "perPage":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "page":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    }
-                }
-            },
-            "Script":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "props":
-                    {
-                        "type": "object",
-                        "additionalProperties":
-                        {
-                            "type": "object"
-                        }
-                    },
-                    "serNum":
-                    {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "key":
-                    {
-                        "type": "string"
-                    },
-                    "name":
-                    {
-                        "type": "string"
-                    },
-                    "pkScript":
-                    {
-                        "type": "string"
-                    },
-                    "scriptName":
-                    {
-                        "type": "string"
-                    },
-                    "scriptNo":
-                    {
-                        "type": "string"
-                    },
-                    "scriptSpecification":
-                    {
-                        "type": "string"
-                    },
-                    "pkScriptType":
-                    {
-                        "type": "string"
-                    },
-                    "applyType":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "pkDriverType":
-                    {
-                        "type": "string"
-                    },
-                    "scriptFormat":
-                    {
-                        "type": "string"
-                    },
-                    "scriptContent":
-                    {
-                        "type": "string"
-                    },
-                    "scriptContentClob":
-                    {
-                        "type": "string"
-                    },
-                    "scriptContentQuery":
-                    {
-                        "type": "string"
-                    },
-                    "scriptDesc":
-                    {
-                        "type": "string"
-                    },
-                    "pkCreator":
-                    {
-                        "type": "string"
-                    },
-                    "createTime":
-                    {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "pkMender":
-                    {
-                        "type": "string"
-                    },
-                    "mendTimeLast":
-                    {
-                        "type": "string",
-                        "format": "date-time"
-                    },
-                    "varList":
-                    {
-                        "type": "array",
-                        "items":
-                        {
-                            "$ref": "#/components/schemas/Var"
-                        }
-                    },
-                    "source":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "isSudo":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "relatedCheckItems":
-                    {
-                        "type": "array",
-                        "items":
-                        {
-                            "$ref": "#/components/schemas/ScriptRelatedCheckItem"
-                        }
-                    },
-                    "scriptAssetType":
-                    {
-                        "type": "string"
-                    },
-                    "scriptSpecificationContent":
-                    {
-                        "type": "string"
-                    },
-                    "hasPassDecrypt":
-                    {
-                        "type": "boolean"
-                    },
-                    "sudoScript":
-                    {
-                        "type": "boolean"
-                    },
-                    "genericScript":
-                    {
-                        "type": "boolean"
-                    }
-                }
-            },
-            "ScriptRelatedCheckItem":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "props":
-                    {
-                        "type": "object",
-                        "additionalProperties":
-                        {
-                            "type": "object"
-                        }
-                    },
-                    "serNum":
-                    {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "key":
-                    {
-                        "type": "string"
-                    },
-                    "name":
-                    {
-                        "type": "string"
-                    },
-                    "scriptId":
-                    {
-                        "type": "string"
-                    },
-                    "checkItemId":
-                    {
-                        "type": "string"
-                    },
-                    "checkItemName":
-                    {
-                        "type": "string"
-                    },
-                    "checkItemSpecial":
-                    {
-                        "type": "string"
-                    },
-                    "assetTypeFullName":
-                    {
-                        "type": "string"
-                    },
-                    "assetTypeCode":
-                    {
-                        "type": "string"
-                    }
-                }
-            },
-            "Var":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "props":
-                    {
-                        "type": "object",
-                        "additionalProperties":
-                        {
-                            "type": "object"
-                        }
-                    },
-                    "serNum":
-                    {
-                        "type": "integer",
-                        "format": "int64"
-                    },
-                    "key":
-                    {
-                        "type": "string"
-                    },
-                    "name":
-                    {
-                        "type": "string"
-                    },
-                    "pkVar":
-                    {
-                        "type": "string"
-                    },
-                    "varName":
-                    {
-                        "type": "string"
-                    },
-                    "varDefine":
-                    {
-                        "type": "string"
-                    }
-                }
-            },
-            "ResultListHandBook":
-            {
-                "type": "object",
-                "properties":
-                {
-                    "success":
-                    {
-                        "type": "boolean"
-                    },
-                    "httpStatus":
-                    {
-                        "type": "integer",
-                        "format": "int32"
-                    },
-                    "message":
-                    {
-                        "type": "string"
-                    },
-                    "entity":
-                    {
-                        "type": "array",
-                        "items":
-                        {
-                            "$ref": "#/components/schemas/HandBook"
-                        }
-                    }
-                }
-            }
-        }
+      "url": "https://localhost:4089",
+      "description": "Generated server url"
     }
+  ],
+  "tags": [
+    {
+      "name": "基线核查模板管理",
+      "description": "基线核查模板的增删改查接口。模版是检查项的集合，添加模版需要先调用：添加选中检查项/添加全部检查项接口。添加选中检查项/添加全部检查项接口中的参数：templateId 为前端生成，同时保存模版的时候，参数放在了 pkCollectTemplate 字段编辑模版除了模版本身的属性可以编辑，很重要的一个编辑项是模版检查项"
+    }
+  ],
+  "paths": {
+    "/v3/config-templates": {
+      "get": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "基线模板分页",
+        "description": "基线模板列表",
+        "operationId": "queryCollectTemplatePage",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "页码",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "perPage",
+            "in": "query",
+            "description": "每页数量",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "params",
+            "in": "query",
+            "description": "查询参数",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AcCollectTemplateDTO"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageDataHandBook"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "编辑模板",
+        "description": "编辑基线核查模板",
+        "operationId": "update",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcCollectTemplate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultHandBook"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "添加模板",
+        "description": "[依赖] @Patch /config-templates/selectTemplate/{templateId} 接口 templateId 作为当前模版的 pkCollectTemplate",
+        "operationId": "insert",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcCollectTemplate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultHandBook"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/config-templates/temps/{templateId}": {
+      "put": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "删除全部检查项",
+        "description": "删除模板中的全部检查项",
+        "operationId": "delSelectedAll",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultInteger"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "批量删除检查项",
+        "description": "根据条件批量删除模板中的检查项信息，条件再params中传递，主要是检查项ID，key为:pkAssetSelecteds",
+        "operationId": "delSelected",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultInteger"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/config-templates/selectTemplate/{templateId}": {
+      "put": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "为模版添加全部检查项",
+        "description": "为模版添加全部检查项数据，添加条件在 params 中传递",
+        "operationId": "addSelectedAll",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultInteger"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "为模版添加选中检查项",
+        "description": "[依赖] @Get /config-templates/choose 接口，返回的 checkitemId 作为 pkAssets 参数传入",
+        "operationId": "addSelected",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultInteger"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/config-templates/isExist": {
+      "post": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "唯一性校验",
+        "description": "校验模板名称是否重复",
+        "operationId": "isExist",
+        "parameters": [
+          {
+            "name": "checkType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "checkValue",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultBoolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/config-templates/{templateId}/enable": {
+      "patch": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "启用模板",
+        "description": "启用基线核查模板",
+        "operationId": "enableTemplate",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "description": "模板ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultHandBook"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/config-templates/{templateId}/disable": {
+      "patch": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "禁用模板",
+        "description": "禁用基线核查模板",
+        "operationId": "disableTemplate",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "description": "模板ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultHandBook"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/config-templates/{templateId}/default": {
+      "patch": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "设置默认模板",
+        "description": "将指定模板设置为默认",
+        "operationId": "defaultTemplate",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "description": "模板ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultHandBook"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/config-templates/{templateId}/{optType}/basic": {
+      "get": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "查询模板基本信息",
+        "description": "根据模板ID查询模板基本信息",
+        "operationId": "queryTemplateInfo",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "optType",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultHandBook"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/config-templates/{templateId}/list": {
+      "get": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "查询模板检查项列表",
+        "description": "分页查询模板下的检查项列表",
+        "operationId": "queryViewPropPage",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "perPage",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "templateId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assetTypeIds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "checkItemName",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "riskLevel",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromSpecial",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "field",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageDataCheckitem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/config-templates/choose": {
+      "get": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "基线分页列表",
+        "description": "查询基线分页列表（已选/未选）",
+        "operationId": "queryCollectFingerPage",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "perPage",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          },
+          {
+            "name": "tempId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fromSpecial",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "selected",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fingerType",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "assetTypeCode",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "checkItemName",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "templateId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "field",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageDataCheckitem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v3/config-templates/{templateId}": {
+      "delete": {
+        "tags": [
+          "基线核查模板管理"
+        ],
+        "summary": "删除模板",
+        "description": "删除基线核查模板",
+        "operationId": "deleteTemplate",
+        "parameters": [
+          {
+            "name": "templateId",
+            "in": "path",
+            "description": "模板ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResultHandBook"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AcCollectTemplate": {
+        "type": "object",
+        "description": "模板信息",
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "serNum": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "pkCollectTemplate": {
+            "type": "string"
+          },
+          "templateName": {
+            "type": "string"
+          },
+          "templateVer": {
+            "type": "string"
+          },
+          "templateDesc": {
+            "type": "string"
+          },
+          "templateType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isDefault": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isUse": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pkCreator": {
+            "type": "string"
+          },
+          "mendTimeLast": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pkMender": {
+            "type": "string"
+          },
+          "isDelete": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fromTask": {
+            "type": "boolean"
+          },
+          "specification": {
+            "type": "string"
+          },
+          "restrictSpec": {
+            "type": "boolean"
+          }
+        }
+      },
+      "HandBook": {
+        "type": "object",
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "serNum": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "pkHandbook": {
+            "type": "string"
+          },
+          "bookName": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "type": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "source": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pkCreator": {
+            "type": "string"
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pkMender": {
+            "type": "string"
+          },
+          "mendTimeLast": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isDelete": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "itemCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isDefault": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isUse": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "version": {
+            "type": "string"
+          },
+          "specification": {
+            "type": "string"
+          },
+          "specificationContent": {
+            "type": "string"
+          },
+          "restrictSpec": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "originalBookName": {
+            "type": "string"
+          }
+        }
+      },
+      "ResultHandBook": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "httpStatus": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "entity": {
+            "$ref": "#/components/schemas/HandBook"
+          }
+        }
+      },
+      "ResultInteger": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "httpStatus": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "entity": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ResultBoolean": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "httpStatus": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "message": {
+            "type": "string"
+          },
+          "entity": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AcCollectTemplateDTO": {
+        "type": "object",
+        "properties": {
+          "pkCollectTemplate": {
+            "type": "string"
+          },
+          "templateName": {
+            "type": "string"
+          },
+          "templateDesc": {
+            "type": "string"
+          },
+          "templateType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isDefault": {
+            "type": "string"
+          },
+          "isUse": {
+            "type": "string"
+          },
+          "field": {
+            "type": "string"
+          },
+          "order": {
+            "type": "string"
+          },
+          "specification": {
+            "type": "string"
+          },
+          "updateStartTime": {
+            "type": "string"
+          },
+          "updateEndTime": {
+            "type": "string"
+          }
+        }
+      },
+      "PageDataHandBook": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HandBook"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "perPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "Checkitem": {
+        "type": "object",
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "serNum": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "checkitemId": {
+            "type": "string"
+          },
+          "chnCode": {
+            "type": "string"
+          },
+          "engCode": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "property": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "templateId": {
+            "type": "string"
+          },
+          "styleId": {
+            "type": "string"
+          },
+          "createDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "TEMP",
+              "OK",
+              "ISSUE"
+            ]
+          },
+          "orgId": {
+            "type": "string"
+          },
+          "orgName": {
+            "type": "string"
+          },
+          "creatorId": {
+            "type": "string"
+          },
+          "creatorName": {
+            "type": "string"
+          },
+          "menderId": {
+            "type": "string"
+          },
+          "mender": {
+            "type": "string"
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastMendTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "isRequired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fromSpecification": {
+            "type": "string"
+          },
+          "fromSpecificationContent": {
+            "type": "string"
+          },
+          "assetTypeFullName": {
+            "type": "string"
+          },
+          "fromSpecCode": {
+            "type": "string"
+          },
+          "versionNum": {
+            "type": "string"
+          },
+          "fs1": {
+            "type": "string"
+          },
+          "fs2": {
+            "type": "string"
+          },
+          "fs3": {
+            "type": "string"
+          },
+          "fs4": {
+            "type": "string"
+          },
+          "fs5": {
+            "type": "string"
+          },
+          "fi1": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fi2": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fi3": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fi4": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fi5": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "fn1": {
+            "type": "number",
+            "format": "double"
+          },
+          "fn2": {
+            "type": "number",
+            "format": "double"
+          },
+          "fn3": {
+            "type": "number",
+            "format": "double"
+          },
+          "fn4": {
+            "type": "number",
+            "format": "double"
+          },
+          "relatedCheckitemId": {
+            "type": "string"
+          },
+          "baseline": {
+            "$ref": "#/components/schemas/CheckitemBaseline"
+          },
+          "templet": {
+            "$ref": "#/components/schemas/Script"
+          },
+          "isOs": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "source": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "soIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "values": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CheckitemBaselineValue"
+            }
+          },
+          "checkitemSoRelation": {
+            "$ref": "#/components/schemas/CheckitemSoRelation"
+          },
+          "groupCheckitemId": {
+            "type": "string"
+          },
+          "miningType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pkBaseDataVer": {
+            "type": "string"
+          },
+          "baseDataVerHis": {
+            "type": "string"
+          },
+          "isDeleted": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "propertyText": {
+            "type": "string"
+          },
+          "typeName": {
+            "type": "string"
+          },
+          "middleLevel": {
+            "type": "boolean"
+          },
+          "highLevel": {
+            "type": "boolean"
+          },
+          "lowLevel": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CheckitemBaseline": {
+        "type": "object",
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "serNum": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "checkitemId": {
+            "type": "string"
+          },
+          "inspectType": {
+            "type": "string",
+            "enum": [
+              "MANUAL",
+              "AUTO"
+            ]
+          },
+          "inspectTypeId": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "inspectMethod": {
+            "type": "string"
+          },
+          "judgeCondition": {
+            "type": "string"
+          },
+          "memo": {
+            "type": "string"
+          },
+          "inspectScriptid": {
+            "type": "string"
+          },
+          "inspectScriptName": {
+            "type": "string"
+          },
+          "parseExpression": {
+            "type": "string"
+          },
+          "relation": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "judgeSymbol": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "baselineValue": {
+            "type": "string"
+          },
+          "isEligible": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "problemDesc": {
+            "type": "string"
+          },
+          "riskLevel": {
+            "type": "string"
+          },
+          "riskLevelContent": {
+            "type": "string"
+          },
+          "reinforceType": {
+            "type": "string"
+          },
+          "reinforceTypeContent": {
+            "type": "string"
+          },
+          "suggestion": {
+            "type": "string"
+          },
+          "supplement": {
+            "type": "string"
+          },
+          "anaylzeClass": {
+            "type": "string"
+          },
+          "valueId": {
+            "type": "string"
+          },
+          "judgeExpression": {
+            "type": "string"
+          },
+          "judgeExpressionCode": {
+            "type": "string"
+          },
+          "inspectTypeText": {
+            "type": "string"
+          }
+        }
+      },
+      "CheckitemBaselineValue": {
+        "type": "object",
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "serNum": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "valueId": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "valueDesc": {
+            "type": "string"
+          },
+          "relation": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "level": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isDefault": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "checkitemId": {
+            "type": "string"
+          }
+        }
+      },
+      "CheckitemSoRelation": {
+        "type": "object",
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "serNum": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "relationId": {
+            "type": "string"
+          },
+          "checkitemId": {
+            "type": "string"
+          },
+          "soId": {
+            "type": "string"
+          },
+          "soParentId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "soSeriescode": {
+            "type": "string"
+          },
+          "seriesCode": {
+            "type": "string"
+          }
+        }
+      },
+      "PageDataCheckitem": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Checkitem"
+            }
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "perPage": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "page": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "Script": {
+        "type": "object",
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "serNum": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "pkScript": {
+            "type": "string"
+          },
+          "scriptName": {
+            "type": "string"
+          },
+          "scriptNo": {
+            "type": "string"
+          },
+          "scriptSpecification": {
+            "type": "string"
+          },
+          "pkScriptType": {
+            "type": "string"
+          },
+          "applyType": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pkDriverType": {
+            "type": "string"
+          },
+          "scriptFormat": {
+            "type": "string"
+          },
+          "scriptContent": {
+            "type": "string"
+          },
+          "scriptContentClob": {
+            "type": "string"
+          },
+          "scriptContentQuery": {
+            "type": "string"
+          },
+          "scriptDesc": {
+            "type": "string"
+          },
+          "pkCreator": {
+            "type": "string"
+          },
+          "createTime": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "pkMender": {
+            "type": "string"
+          },
+          "mendTimeLast": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "varList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Var"
+            }
+          },
+          "source": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isSudo": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "relatedCheckItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScriptRelatedCheckItem"
+            }
+          },
+          "scriptAssetType": {
+            "type": "string"
+          },
+          "scriptSpecificationContent": {
+            "type": "string"
+          },
+          "hasPassDecrypt": {
+            "type": "boolean"
+          },
+          "sudoScript": {
+            "type": "boolean"
+          },
+          "genericScript": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ScriptRelatedCheckItem": {
+        "type": "object",
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "serNum": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "scriptId": {
+            "type": "string"
+          },
+          "checkItemId": {
+            "type": "string"
+          },
+          "checkItemName": {
+            "type": "string"
+          },
+          "checkItemSpecial": {
+            "type": "string"
+          },
+          "assetTypeFullName": {
+            "type": "string"
+          },
+          "assetTypeCode": {
+            "type": "string"
+          }
+        }
+      },
+      "Var": {
+        "type": "object",
+        "properties": {
+          "props": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "object"
+            }
+          },
+          "serNum": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "key": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "pkVar": {
+            "type": "string"
+          },
+          "varName": {
+            "type": "string"
+          },
+          "varDefine": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }

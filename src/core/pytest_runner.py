@@ -75,21 +75,28 @@ class PytestRunner:
         start_time = time.time()
 
         try:
-            result = subprocess.run(
+            # 使用 Popen 实现实时输出
+            process = subprocess.Popen(
                 cmd,
-                capture_output=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
                 text=True,
-                timeout=self.config.timeout * 100,  # 整体超时
+                bufsize=1,  # 行缓冲
                 cwd=str(test_path.parent)
             )
 
-            duration = time.time() - start_time
+            # 实时读取并输出
+            stdout_lines = []
+            for line in process.stdout:
+                stdout_lines.append(line)
+                logger.info(f"[pytest] {line.rstrip()}")
+                if self.config.on_output:
+                    self.config.on_output(line)
 
-            # 回调输出
-            if self.config.on_output:
-                self.config.on_output(result.stdout)
-                if result.stderr:
-                    self.config.on_output(result.stderr)
+            process.wait(timeout=self.config.timeout * 100)
+            stdout_content = ''.join(stdout_lines)
+
+            duration = time.time() - start_time
 
             # 解析结果 - JUnit XML 路径相对于 cwd
             junit_path = test_path.parent / output_path.name / self.config.junit_xml
@@ -102,7 +109,7 @@ class PytestRunner:
             skipped = sum(1 for r in test_results if r.status == TestStatus.SKIP)
 
             return PytestResult(
-                exit_code=result.returncode,
+                exit_code=process.returncode,
                 total=len(test_results),
                 passed=passed,
                 failed=failed,
@@ -110,11 +117,12 @@ class PytestRunner:
                 skipped=skipped,
                 duration=duration,
                 test_results=test_results,
-                stdout=result.stdout,
-                stderr=result.stderr
+                stdout=stdout_content,
+                stderr=""
             )
 
         except subprocess.TimeoutExpired:
+            process.kill()
             duration = time.time() - start_time
             logger.error(f"Pytest execution timed out after {duration:.1f}s")
             return PytestResult(

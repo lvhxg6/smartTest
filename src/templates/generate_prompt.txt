@@ -8,6 +8,10 @@
 2. 探测数据文件: {output_dir}/explored_data.json
 3. 依赖分析摘要: {dependency_analysis_block}
 4. 探测数据摘要: {exploration_block}
+5. **必须实现的显式依赖**:
+{explicit_dependencies_block}
+
+⚠️ **重要**: 上述显式依赖必须在测试代码中完整实现，不能仅作为注释！
 
 **请先读取以上文件，了解可用的真实数据/依赖。不要自行探测网络。**
 
@@ -206,14 +210,138 @@ class TestXxxAPI:
    - 优先使用 `get_explored_id()` 获取探测数据
    - 探测失败时使用 `pytest.skip()` 跳过而非硬编码假数据
 6. **后置验证**: 增删改操作必须有验证步骤确认操作生效
+7. **显式依赖处理**: 如果依赖分析中有"置信度: 最高"的显式依赖，测试代码必须按依赖顺序执行前置操作
+
+---
+
+## 显式依赖的测试代码生成（强制执行）
+
+⚠️ **重要**: 以下不是可选建议，而是必须执行的规则。
+
+### 第一步：识别显式依赖
+
+从上方「必须实现的显式依赖」部分识别所有 **置信度=最高** 或 **置信度=高** 的依赖关系。
+
+### 第二步：实现前置调用（必须）
+
+对于每个显式依赖，测试代码中**必须包含实际的前置接口调用代码**，而不仅仅是注释说明。
+
+**❌ 禁止行为 - 只有注释没有实现**:
+```python
+# 错误示例：只写注释，没有实际调用前置接口
+def test_create_template(self, api_client, base_url):
+    """显式依赖: PATCH /selectTemplate/{{templateId}}"""
+    # 依赖链: 1.获取检查项 2.添加检查项 3.创建模板
+    template_id = str(uuid.uuid4())
+    # ❌ 直接创建，跳过了前置调用！这是错误的！
+    response = api_client.post(f"{{base_url}}/v3/config-templates", json=data)
+```
+
+**✅ 必须行为 - 完整实现前置调用**:
+```python
+# 正确示例：完整实现所有前置接口调用
+def test_create_template(self, api_client, base_url):
+    """创建模板 - 需要先添加检查项（显式依赖）"""
+    import uuid
+
+    # Step 1: 调用前置接口 - 获取可选检查项
+    choose_resp = api_client.get(
+        f"{{base_url}}/v3/config-templates/choose",
+        params={{"page": 1, "perPage": 10}}
+    )
+    if choose_resp.status_code != 200:
+        pytest.skip("前置依赖失败: 无法获取检查项列表")
+
+    items = choose_resp.json().get("data", [])
+    if not items:
+        pytest.skip("前置依赖失败: 没有可用检查项")
+
+    item_ids = [item.get("pkAssets") for item in items[:3] if item.get("pkAssets")]
+
+    # Step 2: 调用前置接口 - 添加检查项到模板
+    template_id = str(uuid.uuid4())
+    select_resp = api_client.patch(
+        f"{{base_url}}/v3/config-templates/selectTemplate/{{template_id}}",
+        json={{"pkAssets": item_ids}}
+    )
+    if select_resp.status_code != 200:
+        pytest.skip("前置依赖失败: 添加检查项失败")
+
+    # Step 3: 现在执行目标操作 - 创建模板
+    create_data = {{
+        "pkCollectTemplate": template_id,
+        "templateName": f"pytest_{{uuid.uuid4().hex[:8]}}",
+        "templateType": 1
+    }}
+    response = api_client.post(f"{{base_url}}/v3/config-templates", json=create_data)
+
+    assert response.status_code == 200
+```
+
+### 第三步：实现检查清单
+
+生成代码时，对每个显式依赖必须满足以下检查项：
+
+| 检查项 | 说明 |
+|--------|------|
+| ✅ 前置接口调用 | 必须有 `api_client.get/post/patch` 调用代码 |
+| ✅ 响应状态检查 | 必须检查前置接口返回状态码 |
+| ✅ 数据提取 | 必须从响应中提取所需的 ID 或值 |
+| ✅ 失败处理 | 前置失败时使用 `pytest.skip()` 而非继续 |
+| ❌ 禁止跳过 | 不允许"可选"跳过前置调用 |
+| ❌ 禁止只写注释 | 注释中的依赖说明必须有对应代码实现 |
+
+---
+
+## 通用依赖处理示例
+
+**示例**: `POST /items` 显式依赖 `POST /collections → collectionId`
+
+```python
+# TestCase: TC-050
+@pytest.mark.p0
+def test_create_item_with_collection(self, api_client, base_url):
+    """创建物品 - 需要先创建集合（显式依赖）"""
+    import uuid
+
+    # Step 1: 先创建集合（前置依赖）
+    collection_data = {{
+        "collectionName": f"pytest_collection_{{uuid.uuid4().hex[:8]}}"
+    }}
+    collection_resp = api_client.post(f"{{base_url}}/v1/collections", json=collection_data)
+
+    if collection_resp.status_code != 200:
+        pytest.skip("前置依赖失败: 集合创建失败")
+
+    # Step 2: 提取 collectionId
+    collection_id = collection_resp.json().get("entity", {{}}).get("collectionId")
+    if not collection_id:
+        pytest.skip("前置依赖失败: 集合创建未返回 collectionId")
+
+    # Step 3: 使用 collectionId 创建物品
+    item_data = {{
+        "itemName": f"pytest_item_{{uuid.uuid4().hex[:8]}}",
+        "collectionId": collection_id  # 使用前置接口返回的ID
+    }}
+    response = api_client.post(f"{{base_url}}/v1/items", json=item_data)
+
+    assert response.status_code == 200, f"创建物品失败: {{response.text}}"
+
+    # Step 4: 后置验证
+    item_id = response.json().get("entity", {{}}).get("itemId")
+    verify_resp = api_client.get(f"{{base_url}}/v1/items/{{item_id}}")
+    assert verify_resp.status_code == 200
+    assert verify_resp.json().get("entity", {{}}).get("collectionId") == collection_id
+```
 
 ---
 
 ## 测试数据使用优先级
 
-1. **探测数据** (最优先): `get_explored_id("resourceId")`
-2. **Swagger example**: 当探测失败时参考
-3. **合理构造**: 基于字段类型和业务含义构造
+1. **显式依赖的前置接口返回值** (最优先): 通过调用前置接口获取
+2. **探测数据**: `get_explored_id("resourceId")`
+3. **Swagger example**: 当探测失败时参考
+4. **合理构造**: 基于字段类型和业务含义构造
 
 ---
 

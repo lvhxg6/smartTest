@@ -131,10 +131,32 @@ class PromptBuilder:
 
         analysis_block = ""
         exploration_block = ""
+        explicit_deps_block = ""
+
         if getattr(context, "dependency_analysis", None):
-            analysis_block = context.dependency_analysis.to_prompt_block(limit=6)
+            # 生成阶段不限制依赖数量，显示完整依赖
+            analysis_block = context.dependency_analysis.to_prompt_block(limit=20)
+
+            # 提取高置信度依赖，生成强制实现清单
+            high_confidence_deps = [
+                dep for dep in context.dependency_analysis.dependencies
+                if dep.confidence in ("最高", "高")
+            ]
+            if high_confidence_deps:
+                explicit_deps_block = "### 必须实现的显式依赖\n\n"
+                for i, dep in enumerate(high_confidence_deps, 1):
+                    consumer = f"{dep.consumer.method} {dep.consumer.path}"
+                    producers = ", ".join([f"{p.method} {p.path}" for p in dep.producers])
+                    explicit_deps_block += f"{i}. **{consumer}** 需要先调用: {producers}\n"
+                    explicit_deps_block += f"   - 字段: {dep.field.name}\n"
+                    explicit_deps_block += f"   - 置信度: {dep.confidence}\n\n"
+            else:
+                explicit_deps_block = "（无高置信度显式依赖）"
+        else:
+            explicit_deps_block = "（本地依赖分析结果为空）"
+
         if getattr(context, "exploration_data", None):
-            exploration_block = context.exploration_data.to_prompt_block(limit=6)
+            exploration_block = context.exploration_data.to_prompt_block(limit=10)
 
         format_args = {
             "testcases_file": testcases_file,
@@ -146,7 +168,8 @@ class PromptBuilder:
             "timeout": context.config.timeout,
             "output_dir": context.output_dir,
             "dependency_analysis_block": analysis_block or "（本地依赖分析结果为空）",
-            "exploration_block": exploration_block or "（未启用或未获取到探测数据）"
+            "exploration_block": exploration_block or "（未启用或未获取到探测数据）",
+            "explicit_dependencies_block": explicit_deps_block
         }
 
         prompt = template.format_map(defaultdict(str, format_args))
@@ -154,11 +177,11 @@ class PromptBuilder:
         extra_blocks = []
         analysis = getattr(context, "dependency_analysis", None)
         if analysis:
-            extra_blocks.append("## 预计算依赖分析\n" + analysis.to_prompt_block(limit=6))
+            extra_blocks.append("## 预计算依赖分析\n" + analysis.to_prompt_block(limit=20))
 
         exploration = getattr(context, "exploration_data", None)
         if exploration:
-            extra_blocks.append("## 探测数据\n" + exploration.to_prompt_block(limit=6))
+            extra_blocks.append("## 探测数据\n" + exploration.to_prompt_block(limit=10))
 
         if extra_blocks:
             prompt = f"{prompt}\n\n" + "\n\n".join(extra_blocks)
