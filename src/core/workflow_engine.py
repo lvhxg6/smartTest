@@ -44,6 +44,7 @@ class WorkflowState(Enum):
     FINALIZING = "生成报告"
     COMPLETED = "已完成"
     FAILED = "失败"
+    CANCELLED = "已取消"
 
 
 @dataclass
@@ -129,8 +130,8 @@ class WorkflowEngine:
     def _check_cancel(self) -> None:
         """若收到取消信号则中断"""
         if self.config.cancel_event and getattr(self.config.cancel_event, "is_set", lambda: False)():
-            self._set_state(WorkflowState.FAILED, "任务已被取消")
-            raise RuntimeError("任务已被取消")
+            self._set_state(WorkflowState.CANCELLED, "任务已被取消")
+            raise WorkflowCancelled("任务已被取消")
 
     def _set_state(self, state: WorkflowState, message: str = "") -> None:
         """更新状态"""
@@ -179,7 +180,7 @@ class WorkflowEngine:
             return report
 
         except WorkflowCancelled:
-            self._set_state(WorkflowState.FAILED, "任务已取消")
+            self._set_state(WorkflowState.CANCELLED, "任务已取消")
             logger.warning("Workflow cancelled by user")
             return None
         except Exception as e:
@@ -264,6 +265,8 @@ class WorkflowEngine:
         result = self.cli_session.send(prompt_pkg.prompt)
 
         if not result.success:
+            if ("任务已取消" in (result.error or "")) or result.exit_code == -2:
+                raise WorkflowCancelled("任务已取消")
             raise RuntimeError(f"生成阶段失败: {result.error}")
 
         self._log("info", "generation", "代码生成完成")
@@ -450,6 +453,9 @@ class WorkflowEngine:
         # 保存 Bug 报告
         self._save_bug_report(report)
 
+        # 保存完整执行报告
+        self._save_execution_report(report)
+
         self._log(
             "info", "finalization",
             f"报告生成完成: 通过率 {report.pass_rate:.1f}%"
@@ -508,6 +514,18 @@ class WorkflowEngine:
             json.dumps(bug_data, indent=2, ensure_ascii=False),
             encoding='utf-8'
         )
+
+    def _save_execution_report(self, report: FinalReport) -> None:
+        """保存完整执行报告，方便后续溯源"""
+        output_path = Path(self.context.output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        report_file = output_path / "execution_report.json"
+        report_file.write_text(
+            report.to_json(),
+            encoding='utf-8'
+        )
+        self._log("info", "finalization", f"执行报告已保存: execution_report.json")
 
 
 # 便捷函数

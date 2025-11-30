@@ -13,6 +13,7 @@ import time
 import logging
 import tempfile
 import os
+import select
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any, Callable
 from enum import Enum
@@ -439,34 +440,11 @@ class CLIAdapter:
                 start_new_session=True  # 创建新进程组，防止信号传播导致父进程终止
             )
 
-            # 逐行读取 stream-json 输出
-            for line in process.stdout:
-                line = line.strip()
-                if not line:
-                    continue
-
-                try:
-                    event = json.loads(line)
-                    if isinstance(event, dict):
-                        all_events.append(event)
-
-                        # 处理关键节点回调
-                        self._handle_stream_event(event)
-
-                        # 保存最终结果
-                        if event.get("type") == "result":
-                            final_result = event
-                    else:
-                        logger.debug(f"Ignored non-dict event: {line[:80]}")
-
-                except json.JSONDecodeError:
-                    logger.debug(f"Non-JSON line: {line[:100]}")
-                    # 透传原始输出，兼容 CLI 输出格式变化
-                    if self.config.on_output:
-                        preview = line[:400]
-                        self.config.on_output(f"→ CLI: {preview}")
-
-                # 检查取消信号，及时终止 CLI 进程
+            # 逐行读取 stream-json 输出（可取消）
+            stdout = process.stdout
+            buffer = ""
+            while True:
+                # 检查取消信号
                 if cancel_event and getattr(cancel_event, "is_set", lambda: False)():
                     cancelled = True
                     if self.config.on_output:
@@ -476,6 +454,44 @@ class CLIAdapter:
                     except Exception:
                         pass
                     break
+
+                # 若子进程已退出且缓冲为空，结束循环
+                if process.poll() is not None and not buffer:
+                    break
+
+                # 使用 select 轮询，避免阻塞
+                ready, _, _ = select.select([stdout], [], [], 0.2)
+                if not ready:
+                    continue
+
+                chunk = stdout.readline()
+                if not chunk:
+                    continue
+
+                buffer += chunk
+                # 按行处理
+                while "\n" in buffer:
+                    line, buffer = buffer.split("\n", 1)
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        event = json.loads(line)
+                        if isinstance(event, dict):
+                            all_events.append(event)
+                            # 处理关键节点回调
+                            self._handle_stream_event(event)
+                            # 保存最终结果
+                            if event.get("type") == "result":
+                                final_result = event
+                        else:
+                            logger.debug(f"Ignored non-dict event: {line[:80]}")
+                    except json.JSONDecodeError:
+                        logger.debug(f"Non-JSON line: {line[:100]}")
+                        # 透传原始输出，兼容 CLI 输出格式变化
+                        if self.config.on_output:
+                            preview = line[:400]
+                            self.config.on_output(f"→ CLI: {preview}")
 
             # 读取 stderr
             stderr_output = process.stderr.read()

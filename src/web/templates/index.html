@@ -164,7 +164,7 @@
                     </div>
                 </div>
                 <!-- 日志区域 -->
-                <div id="terminal-window" class="flex-1 px-4 py-3 lg:px-6 lg:py-4 font-mono text-[11px] leading-relaxed overflow-y-auto text-slate-300 space-y-0.5 pb-16 scroll-smooth">
+                <div id="terminal-window" class="flex-1 min-w-0 px-4 py-3 lg:px-6 lg:py-4 font-mono text-[11px] leading-relaxed overflow-y-auto overflow-x-hidden text-slate-300 space-y-0.5 pb-16 scroll-smooth">
                     <div class="text-slate-600">> Smart Dev Mantis initialized.</div>
                     <div class="text-slate-600">> Waiting for mission configuration...</div>
                 </div>
@@ -254,7 +254,8 @@
             '自愈修复中': 2,  // 自愈是执行阶段的子状态
             '生成报告': 3,
             '已完成': 4,
-            '失败': -2
+            '失败': -2,
+            '已取消': -2
         };
 
         let currentPhaseIndex = -1;
@@ -406,6 +407,14 @@
                 badge.className = 'phase-badge text-[10px] px-1.5 py-0.5 rounded bg-red-900/30 text-red-400';
                 badge.textContent = '失败';
                 todos.classList.remove('hidden');
+            } else if (status === 'cancelled') {
+                // 取消：灰色提示
+                dot.classList.add('border-slate-500');
+                dotIcon.className = 'dot-icon fa-solid fa-ban text-[8px] text-slate-400';
+                name.classList.add('text-slate-400');
+                badge.className = 'phase-badge text-[10px] px-1.5 py-0.5 rounded bg-slate-900/40 text-slate-400';
+                badge.textContent = '已取消';
+                todos.classList.add('hidden');
             } else {
                 // 等待中：灰色
                 dot.classList.add('border-slate-600');
@@ -470,10 +479,10 @@
                 return;
             }
 
-            // 失败状态：当前阶段变红
-            if (state === '失败') {
+            // 失败/取消 状态
+            if (state === '失败' || state === '已取消') {
                 const failedPhase = currentPhaseIndex >= 0 ? currentPhaseIndex : 0;
-                updatePhaseState(failedPhase, 'failed');
+                updatePhaseState(failedPhase, state === '已取消' ? 'cancelled' : 'failed');
                 return;
             }
 
@@ -607,7 +616,7 @@
             }
 
             const phaseTag = phase ? `[${phase}]` : '';
-            div.className = `${colorClass} font-mono`;
+            div.className = `${colorClass} font-mono truncate`;
             div.innerText = `${prefix} ${phaseTag} ${message}`;
 
             terminal.appendChild(div);
@@ -617,7 +626,7 @@
         // ============== 状态更新 ==============
         function updateStatus(state, message) {
             // 任务完成或失败时停止计时并重置按钮
-            if (state === '已完成' || state === '失败') {
+            if (state === '已完成' || state === '失败' || state === '已取消') {
                 stopTimer();
                 resetButton();
             }

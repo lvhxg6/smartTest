@@ -155,17 +155,29 @@ def run_workflow_task(task_id: str, params: Dict[str, Any], cancel_event: thread
         manager.emit_log("info", "complete", f"任务完成！通过率: {report.pass_rate:.1f}%")
 
     except Exception as e:
-        logger.exception(f"Task {task_id} failed")
-        manager.status = "failed"
-        manager.error = str(e)
-        tasks[task_id]['status'] = "failed"
-        tasks[task_id]['error'] = str(e)
+        is_cancel = cancel_event.is_set() or "取消" in str(e)
+        if is_cancel:
+            logger.warning(f"Task {task_id} cancelled: {e}")
+            manager.status = "cancelled"
+            tasks[task_id]['status'] = "cancelled"
+            manager.emit_log("warning", "system", f"任务已取消: {str(e)}")
+            socketio.emit('state', {
+                'task_id': task_id,
+                'state': "已取消",
+                'message': str(e)
+            }, namespace='/ws')
+        else:
+            logger.exception(f"Task {task_id} failed")
+            manager.status = "failed"
+            manager.error = str(e)
+            tasks[task_id]['status'] = "failed"
+            tasks[task_id]['error'] = str(e)
 
-        manager.emit_log("error", "error", f"任务失败: {str(e)}")
-        socketio.emit('error', {
-            'task_id': task_id,
-            'error': str(e)
-        }, namespace='/ws')
+            manager.emit_log("error", "error", f"任务失败: {str(e)}")
+            socketio.emit('error', {
+                'task_id': task_id,
+                'error': str(e)
+            }, namespace='/ws')
 
 
 # ============== 页面路由 ==============
