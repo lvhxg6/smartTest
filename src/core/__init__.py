@@ -8,6 +8,8 @@ from .prompt_builder import PromptBuilder, PromptPackage, create_prompt_builder
 from .pytest_runner import PytestRunner, PytestConfig, run_pytest
 from .result_judge import ResultJudge, create_judge
 from .workflow_engine import WorkflowEngine, WorkflowConfig, WorkflowState, run_workflow
+from .testcase_parser import TestCaseParser, ParsedTestCase
+from .report_generator import BusinessReportGenerator
 
 __all__ = [
     # CLI Adapter
@@ -22,5 +24,9 @@ __all__ = [
     # Result Judge
     "ResultJudge", "create_judge",
     # Workflow Engine
-    "WorkflowEngine", "WorkflowConfig", "WorkflowState", "run_workflow"
+    "WorkflowEngine", "WorkflowConfig", "WorkflowState", "run_workflow",
+    # Test Case Parser
+    "TestCaseParser", "ParsedTestCase",
+    # Report Generator
+    "BusinessReportGenerator"
 ]

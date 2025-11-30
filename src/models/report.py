@@ -103,6 +103,7 @@ class FinalReport:
     report_html: str = ""           # report.html
     report_xml: str = ""            # results.xml
     bug_report_file: str = ""       # bug_report.json
+    business_report: str = ""       # business_report.html (业务级报告)
 
     @property
     def pass_rate(self) -> float:
@@ -140,7 +141,8 @@ class FinalReport:
                 "testcases_file": self.testcases_file,
                 "report_html": self.report_html,
                 "report_xml": self.report_xml,
-                "bug_report_file": self.bug_report_file
+                "bug_report_file": self.bug_report_file,
+                "business_report": self.business_report
             }
         }
 

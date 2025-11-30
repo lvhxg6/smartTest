@@ -72,8 +72,8 @@
     <main class="flex-1 flex overflow-hidden">
 
         <!-- 左侧：配置面板 -->
-        <section class="w-[420px] flex flex-col border-r border-slate-800 bg-[#0b1120] overflow-y-auto custom-scrollbar">
-            <div class="p-5 space-y-6">
+        <section class="w-[400px] lg:w-[440px] flex-shrink-0 border-r border-slate-800 bg-[#0b1120] overflow-y-auto custom-scrollbar">
+            <div class="p-4 space-y-4 flex flex-col h-full">
 
                 <!-- 1. 骨架 (Swagger) -->
                 <div>
@@ -81,24 +81,23 @@
                         <span>1. 骨架层 (Skeleton)</span>
                         <span class="text-[10px] font-normal text-slate-500">Swagger / OpenAPI</span>
                     </label>
-                    <div id="swagger-drop" class="border border-dashed border-slate-700 rounded bg-slate-900/50 p-4 text-center hover:border-brand-accent hover:bg-slate-800 transition cursor-pointer group"
+                    <div id="swagger-drop" class="border border-dashed border-slate-700 rounded bg-slate-900/50 p-3 text-center hover:border-brand-accent hover:bg-slate-800 transition cursor-pointer group flex items-center justify-center gap-2"
                          ondrop="handleSwaggerDrop(event)" ondragover="event.preventDefault()">
-                        <i class="fa-solid fa-code text-xl text-slate-600 mb-2 group-hover:text-brand-accent transition" id="swagger-icon"></i>
-                        <p class="text-[10px] text-slate-500" id="swagger-hint">拖拽 <code class="text-slate-400">swagger.json</code> 至此处</p>
+                        <i class="fa-solid fa-code text-lg text-slate-600 group-hover:text-brand-accent transition" id="swagger-icon"></i>
+                        <p class="text-[10px] text-slate-500" id="swagger-hint">拖拽 <code class="text-slate-400">swagger.json</code></p>
                         <input type="file" id="swagger-file" accept=".json,.yaml,.yml" class="hidden" onchange="handleSwaggerFile(event)">
                     </div>
                 </div>
 
                 <!-- 2. 灵魂 (业务规则) -->
-                <div>
+                <div class="flex-1 flex flex-col min-h-0">
                     <label class="flex items-center justify-between text-xs font-bold text-brand-accent mb-2">
                         <span>2. 灵魂层 (The Soul)</span>
                         <span class="text-[10px] font-normal text-slate-500">可选 - 业务断言规则</span>
                     </label>
-                    <textarea id="requirements" class="w-full h-24 bg-slate-900 border border-slate-800 rounded p-3 text-[11px] text-slate-300 focus:outline-none focus:border-brand-accent transition resize-none placeholder-slate-600 font-mono leading-relaxed"
-                    placeholder="# 输入业务断言规则 (可选)
-- 库存扣减后必须生成流水记录
-- 非 VIP 用户禁止调用高速通道接口"></textarea>
+                    <textarea id="requirements" class="w-full flex-1 min-h-[80px] bg-slate-900 border border-slate-800 rounded p-2 text-[11px] text-slate-300 focus:outline-none focus:border-brand-accent transition resize-none placeholder-slate-600 font-mono leading-relaxed"
+                    placeholder="# 业务断言规则 (可选)
+- 库存扣减后必须生成流水记录"></textarea>
                 </div>
 
                 <!-- 3. 环境配置 -->
@@ -107,14 +106,14 @@
                         <span>3. 环境配置 (Config)</span>
                         <span class="text-[10px] font-normal text-slate-500 text-red-400">* 必填</span>
                     </label>
-                    <div class="space-y-2 bg-slate-900/50 p-3 rounded border border-slate-800">
-                        <div class="relative group">
-                            <span class="absolute left-3 top-2 text-slate-500 text-xs"><i class="fa-solid fa-globe"></i></span>
-                            <input type="text" id="base-url" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 pl-8 text-xs text-slate-300 focus:border-brand-accent focus:outline-none font-mono" placeholder="https://api.example.com/v1">
+                    <div class="space-y-1.5">
+                        <div class="relative">
+                            <span class="absolute left-2.5 top-1.5 text-slate-500 text-xs"><i class="fa-solid fa-globe"></i></span>
+                            <input type="text" id="base-url" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1.5 pl-7 text-[11px] text-slate-300 focus:border-brand-accent focus:outline-none font-mono" placeholder="https://api.example.com">
                         </div>
-                        <div class="relative group">
-                            <span class="absolute left-3 top-2 text-slate-500 text-xs"><i class="fa-solid fa-key"></i></span>
-                            <input type="password" id="auth-token" class="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 pl-8 text-xs text-slate-300 focus:border-brand-accent focus:outline-none font-mono tracking-widest" placeholder="Bearer token (可选)">
+                        <div class="relative">
+                            <span class="absolute left-2.5 top-1.5 text-slate-500 text-xs"><i class="fa-solid fa-key"></i></span>
+                            <input type="password" id="auth-token" class="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1.5 pl-7 text-[11px] text-slate-300 focus:border-brand-accent focus:outline-none font-mono tracking-widest" placeholder="Token (可选)">
                         </div>
                     </div>
                 </div>
@@ -125,20 +124,29 @@
                         <span>4. 业务数据 (Business Data)</span>
                         <span class="text-[10px] font-normal text-slate-500">可选 - 测试数据</span>
                     </label>
-                    <textarea id="data-assets" class="w-full h-20 bg-slate-900 border border-slate-800 rounded p-3 text-[11px] text-slate-300 focus:outline-none focus:border-brand-accent transition resize-none placeholder-slate-600 font-mono leading-relaxed"
+                    <textarea id="data-assets" class="w-full h-14 bg-slate-900 border border-slate-800 rounded p-2 text-[11px] text-slate-300 focus:outline-none focus:border-brand-accent transition resize-none placeholder-slate-600 font-mono leading-relaxed"
                     placeholder="# 测试数据 (可选)
-| SKU | 库存 | 说明 |
 | SKU001 | 100 | 正常库存 |"></textarea>
                 </div>
 
-            </div>
+                <!-- 探测开关 + 启动按钮 -->
+                <div class="pt-2 space-y-2">
+                    <label class="flex items-center gap-2 text-[11px] text-slate-300">
+                        <input type="checkbox" id="enable-exploration" class="w-4 h-4 accent-cyan-400">
+                        <span>启用依赖探测（轻量 GET 列表提取 ID，需可访问 API）</span>
+                    </label>
+                    <div class="flex gap-2">
+                        <button onclick="startMission()" id="btn-start" class="flex-1 bg-gradient-to-r from-cyan-500/20 to-sky-400/20 hover:from-cyan-400/25 hover:to-sky-300/25 border border-cyan-400/60 text-cyan-200 font-bold py-2.5 rounded-lg transition transform active:scale-98 flex items-center justify-center gap-2 group shadow-lg shadow-cyan-500/10 disabled:opacity-50 disabled:cursor-not-allowed">
+                            <i class="fa-solid fa-bolt group-hover:animate-pulse"></i>
+                            <span>启动</span>
+                        </button>
+                        <button onclick="cancelMission()" id="btn-cancel" class="flex-1 bg-red-500/10 hover:bg-red-500/20 border border-red-500/50 text-red-300 font-semibold py-2.5 rounded-lg transition transform active:scale-98 flex items-center justify-center gap-2 group disabled:opacity-40 disabled:cursor-not-allowed" disabled>
+                            <i class="fa-solid fa-stop"></i>
+                            <span>终止</span>
+                        </button>
+                    </div>
+                </div>
 
-            <!-- 底部：启动按钮 -->
-            <div class="mt-auto p-5 border-t border-slate-800 bg-[#0b1120]">
-                <button onclick="startMission()" id="btn-start" class="w-full bg-brand-accent/10 hover:bg-brand-accent/20 border border-brand-accent/50 text-brand-accent font-bold py-3 rounded-lg transition transform active:scale-98 flex items-center justify-center gap-2 group">
-                    <i class="fa-solid fa-bolt group-hover:animate-pulse"></i>
-                    <span>启动智能编排</span>
-                </button>
             </div>
         </section>
 
@@ -162,37 +170,58 @@
                 </div>
             </div>
 
-            <!-- 终端内容区 -->
-            <div id="terminal-window" class="flex-1 p-6 font-mono text-xs overflow-y-auto text-slate-300 space-y-1.5 pb-20 scroll-smooth">
-                <div class="text-slate-600">> Nexus Agent System initialized.</div>
-                <div class="text-slate-600">> Waiting for mission configuration...</div>
+            <!-- 终端内容区（左右分栏：日志 + Todo） -->
+            <div class="flex-1 flex overflow-hidden">
+                <!-- 左侧：日志区域 -->
+                <div id="terminal-window" class="flex-1 px-4 py-3 lg:px-6 lg:py-5 font-mono text-[13px] leading-relaxed overflow-y-auto text-slate-300 space-y-1 pb-16 scroll-smooth">
+                    <div class="text-slate-600">> Nexus Agent System initialized.</div>
+                    <div class="text-slate-600">> Waiting for mission configuration...</div>
+                </div>
+
+                <!-- 右侧：Todo 进度面板 -->
+                <div id="todo-panel" class="hidden w-[320px] flex-shrink-0 border-l border-slate-800 bg-slate-900/50 overflow-y-auto">
+                    <div class="p-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-list-check text-cyan-500 text-sm"></i>
+                            <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Task Progress</span>
+                        </div>
+                        <ul id="todo-list" class="space-y-2 text-sm font-mono"></ul>
+                    </div>
+                </div>
             </div>
 
             <!-- 结果面板 -->
             <div id="result-panel" class="h-0 transition-all duration-500 overflow-hidden border-t border-slate-800 bg-slate-900/90 backdrop-blur">
-                <div class="p-6 grid grid-cols-5 gap-4 h-full items-center">
-                    <div class="bg-slate-950/50 rounded p-3 border border-slate-800 flex flex-col justify-center">
-                        <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Total Cases</div>
-                        <div id="stat-total" class="text-xl font-bold text-white">-</div>
+                <div class="px-4 py-3 flex items-center gap-3 h-full">
+                    <div class="bg-slate-950/50 rounded px-4 py-2 border border-slate-800 flex items-center gap-3 min-w-0">
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wider whitespace-nowrap">Total</div>
+                        <div id="stat-total" class="text-lg font-bold text-white">-</div>
                     </div>
-                    <div class="bg-slate-950/50 rounded p-3 border border-slate-800 flex flex-col justify-center">
-                        <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Pass Rate</div>
-                        <div id="stat-rate" class="text-xl font-bold text-brand-success">-</div>
+                    <div class="bg-slate-950/50 rounded px-4 py-2 border border-slate-800 flex items-center gap-3 min-w-0">
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wider whitespace-nowrap">Pass Rate</div>
+                        <div id="stat-rate" class="text-lg font-bold text-brand-success">-</div>
                     </div>
-                    <div class="bg-slate-950/50 rounded p-3 border border-slate-800 flex flex-col justify-center">
-                        <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Bugs Found</div>
-                        <div id="stat-bugs" class="text-xl font-bold text-brand-warning">-</div>
+                    <div class="bg-slate-950/50 rounded px-4 py-2 border border-slate-800 flex items-center gap-3 min-w-0">
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wider whitespace-nowrap">Bugs</div>
+                        <div id="stat-bugs" class="text-lg font-bold text-brand-warning">-</div>
                     </div>
-                    <div class="bg-slate-950/50 rounded p-3 border border-slate-800 flex flex-col justify-center">
-                        <div class="text-[10px] text-slate-500 mb-1 uppercase tracking-wider">Duration</div>
-                        <div id="stat-duration" class="text-xl font-bold text-cyan-400">-</div>
+                    <div class="bg-slate-950/50 rounded px-4 py-2 border border-slate-800 flex items-center gap-3 min-w-0">
+                        <div class="text-[10px] text-slate-500 uppercase tracking-wider whitespace-nowrap">Duration</div>
+                        <div id="stat-duration" class="text-lg font-bold text-cyan-400">-</div>
                     </div>
-                    <div class="flex items-center justify-end h-full gap-2">
-                        <button onclick="downloadReport('html')" class="bg-brand-accent hover:bg-cyan-300 text-brand-dark font-bold px-4 py-2 rounded text-xs transition shadow-lg shadow-cyan-500/20">
-                            <i class="fa-solid fa-download mr-1"></i> HTML
+                    <div class="flex-1"></div>
+                    <div class="flex items-center gap-2 flex-shrink-0">
+                        <button onclick="downloadReport('business')" class="bg-brand-accent hover:bg-cyan-300 text-brand-dark font-bold px-3 py-1.5 rounded text-xs transition shadow-lg shadow-cyan-500/20" title="业务级测试报告">
+                            <i class="fa-solid fa-chart-pie mr-1"></i> 报告
                         </button>
-                        <button onclick="downloadReport('json')" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-4 py-2 rounded text-xs transition">
-                            <i class="fa-solid fa-bug mr-1"></i> Bugs
+                        <button onclick="downloadReport('tests')" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded text-xs transition" title="下载测试脚本包">
+                            <i class="fa-solid fa-file-zipper mr-1"></i> 脚本
+                        </button>
+                        <button onclick="downloadReport('testcases')" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-3 py-1.5 rounded text-xs transition" title="测试用例文档">
+                            <i class="fa-solid fa-file-lines mr-1"></i> 用例
+                        </button>
+                        <button onclick="downloadReport('json')" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-3 py-1.5 rounded text-xs transition" title="Bug报告">
+                            <i class="fa-solid fa-bug mr-1"></i> Bug
                         </button>
                     </div>
                 </div>
@@ -308,6 +337,13 @@
             socket.on('result', (data) => {
                 if (data.task_id === currentTaskId) {
                     showResult(data.summary);
+                    stopTimer(); // 确保结束计时
+                }
+            });
+
+            socket.on('todos', (data) => {
+                if (data.task_id === currentTaskId) {
+                    renderTodos(data.todos);
                 }
             });
 
@@ -354,6 +390,36 @@
             terminal.scrollTop = terminal.scrollHeight;
         }
 
+        // ============== Todo 进度渲染 ==============
+        function renderTodos(todos) {
+            const panel = document.getElementById('todo-panel');
+            const list = document.getElementById('todo-list');
+
+            if (!todos || todos.length === 0) {
+                panel.classList.add('hidden');
+                return;
+            }
+
+            panel.classList.remove('hidden');
+            list.innerHTML = todos.map(todo => {
+                let icon, textClass;
+                switch (todo.status) {
+                    case 'completed':
+                        icon = '<i class="fa-solid fa-circle-check text-green-500"></i>';
+                        textClass = 'text-green-400/70 line-through';
+                        break;
+                    case 'in_progress':
+                        icon = '<i class="fa-solid fa-spinner fa-spin text-cyan-400"></i>';
+                        textClass = 'text-cyan-300';
+                        break;
+                    default:
+                        icon = '<i class="fa-regular fa-circle text-slate-600"></i>';
+                        textClass = 'text-slate-500';
+                }
+                return `<li class="flex items-center gap-2 ${textClass}">${icon} <span>${todo.content}</span></li>`;
+            }).join('');
+        }
+
         // ============== 状态更新 ==============
         function updateStatus(state, message) {
             const stateConfig = {
@@ -384,11 +450,14 @@
             document.getElementById('stat-bugs').innerText = summary.bugs_found;
 
             // 显示执行耗时
+            if (finalDuration === null && timerStartTime) {
+                finalDuration = Math.floor((Date.now() - timerStartTime) / 1000);
+            }
             if (finalDuration !== null) {
                 document.getElementById('stat-duration').innerText = formatDuration(finalDuration);
             }
 
-            resultPanel.style.height = '120px';
+            resultPanel.style.height = '56px';
         }
 
         // ============== Swagger 文件处理 ==============
@@ -411,8 +480,8 @@
             const reader = new FileReader();
             reader.onload = (e) => {
                 swaggerContent = e.target.result;
-                document.getElementById('swagger-icon').className = 'fa-solid fa-check text-xl text-green-500 mb-2';
-                document.getElementById('swagger-hint').innerHTML = `<span class="text-green-400">${file.name}</span> 已加载`;
+                document.getElementById('swagger-icon').className = 'fa-solid fa-check text-lg text-green-500';
+                document.getElementById('swagger-hint').innerHTML = `<span class="text-green-400">${file.name}</span>`;
             };
             reader.readAsText(file);
         }
@@ -440,9 +509,12 @@
             startBtn.disabled = true;
             startBtn.querySelector('span').innerText = '编排运行中...';
             startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            document.getElementById('btn-cancel').disabled = false;
 
-            // 清空终端和结果
+            // 清空终端日志和 Todo 面板
             terminal.innerHTML = '';
+            document.getElementById('todo-panel').classList.add('hidden');
+            document.getElementById('todo-list').innerHTML = '';
             resultPanel.style.height = '0';
             document.getElementById('stat-duration').innerText = '-';
             updateStatus('初始化', '');
@@ -451,6 +523,7 @@
             startTimer();
 
             addLog('正在启动任务...', 'info', 'init');
+            addLog(`依赖探测: ${document.getElementById('enable-exploration').checked ? '开启' : '关闭'}`, 'info', 'init');
 
             try {
                 const response = await fetch('/api/run', {
@@ -461,7 +534,8 @@
                         base_url: baseUrl,
                         auth_token: document.getElementById('auth-token').value.trim() || null,
                         requirements: document.getElementById('requirements').value.trim() || null,
-                        data_assets: document.getElementById('data-assets').value.trim() || null
+                        data_assets: document.getElementById('data-assets').value.trim() || null,
+                        enable_exploration: document.getElementById('enable-exploration').checked
                     })
                 });
 
@@ -489,8 +563,9 @@
 
         function resetButton() {
             startBtn.disabled = false;
-            startBtn.querySelector('span').innerText = '启动智能编排';
+            startBtn.querySelector('span').innerText = '启动';
             startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            document.getElementById('btn-cancel').disabled = true;
         }
 
         // ============== 下载报告 ==============
@@ -500,6 +575,32 @@
                 return;
             }
             window.open(`/api/download/${currentTaskId}/${type}`, '_blank');
+        }
+
+        // ============== 终止任务 ==============
+        async function cancelMission() {
+            if (!currentTaskId) {
+                alert('当前没有正在运行的任务');
+                return;
+            }
+            // 避免重复点击导致多次请求
+            document.getElementById('btn-cancel').disabled = true;
+            startBtn.disabled = true;
+            startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            try {
+                const resp = await fetch(`/api/cancel/${currentTaskId}`, { method: 'POST' });
+                const data = await resp.json();
+                if (resp.ok) {
+                    addLog('任务终止请求已发送', 'warning', 'system');
+                } else {
+                    addLog(`终止失败: ${data.error || '未知错误'}`, 'error', 'system');
+                    // 请求失败时允许再次尝试
+                    document.getElementById('btn-cancel').disabled = false;
+                }
+            } catch (e) {
+                addLog(`终止请求异常: ${e.message}`, 'error', 'system');
+                document.getElementById('btn-cancel').disabled = false;
+            }
         }
 
         // ============== 初始化 ==============

@@ -66,6 +66,8 @@ class TaskContext:
     # 运行时状态
     session_id: Optional[str] = None    # CLI Session ID
     output_dir: str = "./output"        # 输出目录
+    dependency_analysis: Optional[Any] = None  # 静态依赖分析结果
+    exploration_data: Optional[Any] = None     # 探测数据
 
     # 自动计算
     @property

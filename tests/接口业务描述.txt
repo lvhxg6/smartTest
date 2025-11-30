@@ -1,0 +1,11 @@
+
+
+模版保存流程
+	1.首先需要选择，模版关联的检查项数据，页面调用后台接口获取一个tempId，这个可以自定义32位UUID就行
+	2.部分添加检查项的时候，会带着tempId和选择的检查项ID，一并调用后台的Patch /config-templates/selectTemplate/{templateId}，备注tempId->templateId
+	3.全部添加检查项的时候，就带着tempId和选择的相关条件，一并调用后台的Put /config-templates/selectTemplate/{templateId}，备注tempId->templateId，条件Map params
+
+
+
+
+

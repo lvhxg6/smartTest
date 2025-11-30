@@ -1,16 +1,463 @@
-你是一位资深API测试专家。请分析以下内容，生成完整的测试用例文档。
+你是一位资深API测试专家。请分析Swagger定义，执行依赖分析和数据探测，生成完整的测试用例文档。
 
 ## 任务说明
-分析Swagger API定义{requirements_section}，生成覆盖完整测试场景的用例文档。
+分析Swagger API定义{requirements_section}，结合**已在本地完成的依赖分析/数据探测结果**，生成覆盖完整测试场景的用例文档。避免重复探测网络接口，优先使用提供的依赖/数据文件。
 
-## Swagger定义
+## 输入信息
+
+### Swagger定义
 {swagger_content}
 {requirements_content}
 {data_content}
 
-## 输出要求
+### 环境配置
+- Base URL: {base_url}
+- Auth Token: {auth_token}
+- 输出目录: {output_dir}
 
-请在 {output_dir} 目录下创建 `testcases.md` 文件，格式如下：
+---
+
+# ═══════════════════════════════════════════════════════════════
+# 已有输入
+# ═══════════════════════════════════════════════════════════════
+
+当前上下文已提供：
+- Swagger 定义
+- （可选）业务规则 / 数据
+- **静态依赖分析**: {dependency_analysis_block}
+- **数据探测结果**: {exploration_block}
+
+请直接利用以上结果规划用例，无需再发起网络探测。
+
+# ═══════════════════════════════════════════════════════════════
+# 第一阶段：静态依赖分析（你可复核并完善）
+# ═══════════════════════════════════════════════════════════════
+
+## 1.1 接口清单提取
+
+扫描Swagger，提取所有接口信息，按以下格式整理：
+
+| 接口路径 | 方法 | 类型 | 描述 |
+|----------|------|------|------|
+| /v1/xxx | GET | 查询(R) | xxx |
+| /v1/xxx | POST | 创建(C) | xxx |
+| /v1/xxx/{{id}} | PUT | 更新(U) | xxx |
+| /v1/xxx/{{id}} | DELETE | 删除(D) | xxx |
+
+**类型说明**：
+- 查询(R): GET方法，无副作用，可安全重复调用
+- 创建(C): POST方法，会新增数据
+- 更新(U): PUT/PATCH方法，需要数据已存在
+- 删除(D): DELETE方法，需要数据已存在
+
+## 1.2 字段提取与分类
+
+对每个接口，提取以下信息：
+
+**请求字段**（路径参数 + Query参数 + Body字段）：
+- 字段名
+- 数据类型
+- 是否必填(required)
+- description描述
+- enum枚举值
+- example示例值
+
+**响应字段**（成功响应200的字段）：
+- 字段名
+- 数据类型
+- description描述
+
+**重点关注 ID 类字段**（用于依赖分析）：
+- 字段名包含: id, Id, ID, pk, PK, key, Key, no, No, code, Code, num, Num
+- 或 description 包含: "主键", "ID", "编号", "标识", "唯一"
+
+## 1.3 字段名归一化
+
+将不同命名风格的字段统一为标准形式：
+
+| 原始字段名 | 归一化名称 | 归一化规则 |
+|-----------|-----------|------------|
+| pkCollectTemplate | templateId | 去掉pk/PK前缀，添加Id后缀 |
+| pk_user_id | userId | 去掉pk前缀，下划线转驼峰 |
+| templateID | templateId | 统一Id大小写 |
+| template_id | templateId | 下划线转驼峰 |
+| TEMPLATE_ID | templateId | 全大写转驼峰 |
+| creatorId | userId | 语义分析：创建者=用户 |
+| modifierId | userId | 语义分析：修改者=用户 |
+| parentId | 同资源Id | 语义分析：自引用 |
+
+## 1.4 语义依赖分析
+
+分析字段的 description，识别隐式依赖关系：
+
+**语义关键词映射**：
+- "创建人/创建者/操作人" → userId
+- "父级/上级/父模板" → 同资源自引用
+- "关联/所属/对应" → 外键依赖
+- "订单/工单/任务" + "ID/编号" → 对应资源ID
+
+**示例**：
+```
+字段: "creatorId"
+description: "创建人ID"
+→ 语义推断: 依赖 User 资源的 userId
+
+字段: "parentTemplateId"
+description: "父模板ID"
+→ 语义推断: 依赖 Template 资源（自引用）
+
+字段: "orderNo"
+description: "关联的订单编号"
+→ 语义推断: 依赖 Order 资源
+```
+
+## 1.5 构建依赖假设图
+
+基于以上分析，输出依赖假设（JSON格式）：
+
+```json
+{{
+  "分析时间": "{timestamp}",
+  "资源识别": {{
+    "template": {{
+      "主键字段": ["pkCollectTemplate", "templateId"],
+      "名称字段": ["templateName"],
+      "相关接口": [
+        "GET /v1/config-templates",
+        "POST /v1/config-templates",
+        "PUT /v1/config-templates",
+        "DELETE /v1/config-templates/{{templateId}}"
+      ]
+    }}
+  }},
+  "依赖假设": [
+    {{
+      "id": "DEP-001",
+      "消费者接口": "PUT /v1/config-templates",
+      "消费字段": "pkCollectTemplate",
+      "字段位置": "body",
+      "是否必填": true,
+      "生产者候选": [
+        {{"接口": "GET /v1/config-templates", "字段": "pkCollectTemplate", "位置": "response.entity[].pkCollectTemplate"}},
+        {{"接口": "POST /v1/config-templates", "字段": "pkCollectTemplate", "位置": "response.entity.pkCollectTemplate"}}
+      ],
+      "归一化ID": "templateId",
+      "置信度": "高",
+      "分析依据": "字段名完全匹配"
+    }},
+    {{
+      "id": "DEP-002",
+      "消费者接口": "POST /v1/config-templates",
+      "消费字段": "creatorId",
+      "字段位置": "body",
+      "是否必填": false,
+      "生产者候选": [
+        {{"接口": "GET /v1/users", "字段": "userId", "位置": "response.entity[].userId"}}
+      ],
+      "归一化ID": "userId",
+      "置信度": "中",
+      "分析依据": "语义分析: creatorId(创建人) 指向 userId(用户)"
+    }}
+  ],
+  "调用顺序建议": [
+    {{"顺序": 1, "接口": "GET /v1/config-templates", "原因": "无依赖，获取现有数据"}},
+    {{"顺序": 2, "接口": "POST /v1/config-templates", "原因": "可选依赖userId，可跳过"}},
+    {{"顺序": 3, "接口": "PUT /v1/config-templates", "原因": "依赖templateId，需step1/2提供"}},
+    {{"顺序": 4, "接口": "DELETE /v1/config-templates/{{id}}", "原因": "依赖templateId"}}
+  ]
+}}
+```
+
+**将静态分析结果保存到: `{output_dir}/dependency_analysis.json`**
+
+---
+
+# ═══════════════════════════════════════════════════════════════
+# 第二阶段：动态试探验证
+# ═══════════════════════════════════════════════════════════════
+
+（本阶段已由系统预先完成，如果需要，请复核提供的探测数据，不要再发起网络请求。以下步骤仅作为理解记录。）
+
+## 2.1 试探调用准备
+
+根据静态分析的"调用顺序建议"，按顺序执行试探调用。
+
+**调用规则**：
+1. 从无依赖的接口开始（通常是 GET 列表接口）
+2. 记录每个接口返回的数据，提取 ID 值
+3. 用提取的 ID 作为下一个接口的输入参数
+4. 验证调用链是否成立
+5. 记录成功/失败状态
+
+**curl 命令规范**：
+```bash
+curl -k -s -w "\nHTTP_STATUS:%{{http_code}}" \
+  -X {{METHOD}} "{base_url}/接口路径" \
+  -H "authorization: {auth_token}" \
+  -H "Content-Type: application/json" \
+  -d '请求体JSON'
+```
+
+**注意事项**：
+- `-k` 忽略SSL证书验证
+- `-s` 静默模式
+- `-w "\nHTTP_STATUS:%{{http_code}}"` 输出状态码
+- `authorization` 使用小写，不加 Bearer 前缀
+
+## 2.2 执行试探调用
+
+### Step 1: 调用无依赖的 GET 列表接口
+
+目的：获取系统中现有的数据，提取可用的 ID
+
+```bash
+curl -k -s -X GET "{base_url}/v1/config-templates?page=1&pageSize=10" \
+  -H "authorization: {auth_token}" \
+  -H "Content-Type: application/json"
+```
+
+**处理返回**：
+- 状态码 200：解析响应，提取 entity 数组中的 ID 字段
+- 状态码 401/403：记录认证问题
+- 状态码 404/500：记录接口问题
+
+### Step 2: 如果列表为空，尝试创建测试数据
+
+目的：确保有可用的测试数据
+
+```bash
+curl -k -s -X POST "{base_url}/v1/config-templates" \
+  -H "authorization: {auth_token}" \
+  -H "Content-Type: application/json" \
+  -d '{{"templateName": "探测测试模板_{timestamp}", "templateType": 1}}'
+```
+
+**处理返回**：
+- 状态码 200：提取返回的新建 ID
+- 失败：记录原因，继续下一步
+
+### Step 3: 验证依赖链
+
+用 Step1/Step2 获取的 ID，依次调用需要该 ID 的接口：
+
+```bash
+# 验证 GET 详情接口
+curl -k -s -X GET "{base_url}/v1/config-templates/{{获取到的ID}}/view/basic" \
+  -H "authorization: {auth_token}"
+
+# 验证 PUT 更新接口
+curl -k -s -X PUT "{base_url}/v1/config-templates" \
+  -H "authorization: {auth_token}" \
+  -H "Content-Type: application/json" \
+  -d '{{"pkCollectTemplate": "{{获取到的ID}}", "templateDesc": "验证更新"}}'
+```
+
+**验证标准**：
+- 状态码 200 → 依赖验证成功 ✓
+- 状态码 400（参数错误）→ 依赖验证失败，ID格式可能不对
+- 状态码 404（不存在）→ 依赖验证失败，ID无效
+- 状态码 401/403 → 认证问题，非依赖问题
+
+### Step 4: 验证完整依赖链
+
+如果存在链式依赖 A→B→C：
+
+```
+1. 调用 A (GET /resources)
+   → 获取 resourceId = "res-001"
+
+2. 用 resourceId 调用 B (POST /resources/{{id}}/items)
+   → 获取 itemId = "item-001"
+   → 验证: resourceId 依赖成立 ✓
+
+3. 用 itemId 调用 C (PUT /items/{{id}})
+   → 验证: itemId 依赖成立 ✓
+
+完整依赖链验证: A → B → C ✓
+```
+
+## 2.3 记录试探日志
+
+将每一步的调用记录保存：
+
+```json
+{{
+  "试探时间": "{timestamp}",
+  "base_url": "{base_url}",
+  "总步骤数": 5,
+  "成功步骤": 4,
+  "失败步骤": 1,
+  "试探记录": [
+    {{
+      "step": 1,
+      "接口": "GET /v1/config-templates",
+      "方法": "GET",
+      "完整URL": "{base_url}/v1/config-templates?page=1&pageSize=10",
+      "目的": "获取现有模板数据",
+      "请求参数": {{"page": 1, "pageSize": 10}},
+      "状态码": 200,
+      "响应摘要": "获取到 5 条数据",
+      "提取的数据": {{
+        "templateId": ["tpl-001", "tpl-002", "tpl-003"],
+        "templateName": ["基线模板", "核查模板", "测试模板"],
+        "templateType": [1, 2, 1]
+      }},
+      "结果": "✓ 成功"
+    }},
+    {{
+      "step": 2,
+      "接口": "GET /v1/config-templates/{{templateId}}/view/basic",
+      "方法": "GET",
+      "完整URL": "{base_url}/v1/config-templates/tpl-001/view/basic",
+      "目的": "验证 DEP-001: templateId 路径参数依赖",
+      "使用的依赖值": {{"templateId": "tpl-001", "来源": "step1"}},
+      "状态码": 200,
+      "响应摘要": "成功获取模板详情",
+      "验证的依赖": "DEP-001",
+      "结果": "✓ 依赖验证成功"
+    }},
+    {{
+      "step": 3,
+      "接口": "PUT /v1/config-templates",
+      "方法": "PUT",
+      "完整URL": "{base_url}/v1/config-templates",
+      "目的": "验证 DEP-001: pkCollectTemplate body参数依赖",
+      "使用的依赖值": {{"pkCollectTemplate": "tpl-001", "来源": "step1"}},
+      "请求体": {{"pkCollectTemplate": "tpl-001", "templateDesc": "验证更新"}},
+      "状态码": 200,
+      "响应摘要": "更新成功",
+      "验证的依赖": "DEP-001",
+      "结果": "✓ 依赖验证成功"
+    }},
+    {{
+      "step": 4,
+      "接口": "GET /v1/users",
+      "方法": "GET",
+      "完整URL": "{base_url}/v1/users",
+      "目的": "获取用户数据，为验证 DEP-002 做准备",
+      "状态码": 401,
+      "响应摘要": "认证失败或无权限",
+      "结果": "✗ 失败 - 无权限访问"
+    }}
+  ]
+}}
+```
+
+**将试探日志保存到: `{output_dir}/exploration_log.json`**
+
+## 2.4 输出验证后的探测数据
+
+汇总所有验证结果：
+
+```json
+{{
+  "explored_at": "{timestamp}",
+  "base_url": "{base_url}",
+  "overall_success": true,
+  "statistics": {{
+    "总接口数": 10,
+    "成功探测": 8,
+    "探测失败": 2,
+    "依赖总数": 5,
+    "已验证依赖": 4,
+    "未验证依赖": 1
+  }},
+
+  "verified_dependencies": {{
+    "templateId": {{
+      "状态": "已验证",
+      "归一化名称": "templateId",
+      "原始字段名": ["pkCollectTemplate", "templateId"],
+      "生产者接口": [
+        {{"接口": "GET /v1/config-templates", "验证步骤": "step1"}},
+        {{"接口": "POST /v1/config-templates", "验证步骤": "step2"}}
+      ],
+      "消费者接口": [
+        "GET /v1/config-templates/{{templateId}}/*",
+        "PUT /v1/config-templates",
+        "DELETE /v1/config-templates/{{templateId}}"
+      ],
+      "可用值": ["tpl-001", "tpl-002", "tpl-003"],
+      "推荐测试值": "tpl-001"
+    }}
+  }},
+
+  "unverified_dependencies": [
+    {{
+      "id": "DEP-002",
+      "归一化名称": "userId",
+      "原始字段名": ["creatorId", "userId"],
+      "状态": "未验证",
+      "失败原因": "无权限访问 GET /v1/users 接口 (401)",
+      "影响的接口": ["POST /v1/config-templates (可选字段)"],
+      "建议处理": "该字段为可选，测试时可跳过或使用空值"
+    }}
+  ],
+
+  "extracted_resources": {{
+    "templateId": ["tpl-001", "tpl-002", "tpl-003", "tpl-004", "tpl-005"],
+    "templateName": ["基线模板", "核查模板", "测试模板", "默认模板", "自定义模板"],
+    "templateType": [1, 2]
+  }},
+
+  "field_patterns": {{
+    "templateName": {{
+      "type": "string",
+      "observed_examples": ["基线模板", "核查模板"],
+      "max_observed_length": 20,
+      "pattern_guess": "中文名称，无特殊限制"
+    }},
+    "templateType": {{
+      "type": "integer",
+      "observed_values": [1, 2],
+      "likely_enum": true,
+      "enum_guess": [1, 2, 3]
+    }},
+    "isDefault": {{
+      "type": "integer",
+      "observed_values": [0, 1],
+      "likely_enum": true,
+      "meaning_guess": "0=否, 1=是"
+    }}
+  }},
+
+  "exploration_summary": [
+    "✓ 成功探测 GET /v1/config-templates，获取 5 条数据",
+    "✓ 成功验证 templateId 依赖链（3个消费者接口）",
+    "✓ 成功探测 templateType 枚举值: [1, 2]",
+    "✗ GET /v1/users 探测失败: 401 无权限",
+    "⚠ userId 依赖未验证，相关字段为可选，影响较小",
+    "建议: 优先使用 templateId=tpl-001 进行测试"
+  ]
+}}
+```
+
+**将最终探测数据保存到: `{output_dir}/explored_data.json`**
+
+---
+
+# ═══════════════════════════════════════════════════════════════
+# 第三阶段：生成测试用例文档
+# ═══════════════════════════════════════════════════════════════
+
+基于验证后的依赖图和探测数据，生成测试用例文档。
+
+## 3.1 测试数据使用原则
+
+**优先级**：
+1. **已验证的探测数据** → 直接使用，标记 [探测✓]
+2. **未验证但有推断的数据** → 谨慎使用，标记 [未验证⚠]
+3. **Swagger example 值** → 兜底使用，标记 [示例]
+4. **构造的测试数据** → 边界/异常测试，标记 [构造]
+
+**依赖处理**：
+- 已验证依赖 → 使用探测到的真实ID
+- 未验证依赖 → 标记风险，测试代码中使用 pytest.skip()
+- 无依赖 → 正常测试
+
+## 3.2 输出测试用例文档
+
+在 {output_dir} 目录下创建 `testcases.md`：
 
 ```markdown
 # 测试用例文档
@@ -18,35 +465,147 @@
 > 生成时间: {timestamp}
 > 接口数量: X
 > 用例总数: Y
+> 数据探测: 成功探测 M 个接口，N 条数据
+> 依赖验证: 已验证 A 个，未验证 B 个
 
-## API: {{METHOD}} {{PATH}}
+---
 
-| 用例ID | 场景 | 前置条件 | 测试数据 | 预期结果 | 优先级 |
-|--------|------|----------|----------|----------|--------|
-| TC-001 | 正常xxx | xxx | xxx | 200, xxx | P0 |
-| TC-002 | 异常xxx | xxx | xxx | 400, xxx | P1 |
+## 一、探测数据摘要
+
+### 1.1 可用的测试数据
+| 资源 | 可用ID | 推荐值 | 来源 |
+|------|--------|--------|------|
+| templateId | tpl-001, tpl-002, tpl-003 | tpl-001 | GET /v1/config-templates |
+| templateType | 1, 2 | 1 | 字段枚举值 |
+
+### 1.2 已验证的依赖关系
+| 依赖ID | 字段 | 生产者 | 消费者 | 状态 |
+|--------|------|--------|--------|------|
+| DEP-001 | templateId | GET/POST /templates | PUT/DELETE /templates | ✓ 已验证 |
+
+### 1.3 未验证的依赖关系
+| 依赖ID | 字段 | 原因 | 影响 | 建议 |
+|--------|------|------|------|------|
+| DEP-002 | userId | 无权限(401) | POST创建时可选 | 跳过或置空 |
+
+---
+
+## 二、测试用例详情
+
+### API-01: GET /v1/config-templates
+**接口描述**: 分页查询模板列表
+**依赖**: 无
+**探测状态**: ✓ 已探测
+
+| 用例ID | 场景 | 优先级 | 测试数据 | 预期结果 | 数据来源 |
+|--------|------|--------|----------|----------|----------|
+| TC-001 | 正常分页查询 | P0 | page=1, pageSize=10 | 200, 返回列表 | [探测✓] |
+| TC-002 | 查询第二页 | P1 | page=2, pageSize=10 | 200 | [构造] |
+| TC-003 | pageSize边界-0 | P2 | pageSize=0 | 400或默认值 | [构造] |
+| TC-004 | pageSize边界-超大 | P2 | pageSize=10000 | 200或400 | [构造] |
+
+---
+
+### API-02: GET /v1/config-templates/{{templateId}}/view/basic
+**接口描述**: 查询模板详情
+**依赖**: templateId (✓ 已验证)
+**探测状态**: ✓ 已探测
+
+| 用例ID | 场景 | 优先级 | 测试数据 | 预期结果 | 数据来源 |
+|--------|------|--------|----------|----------|----------|
+| TC-010 | 正常查询-有效ID | P0 | templateId=tpl-001 | 200, 返回详情 | [探测✓] |
+| TC-011 | 异常-ID不存在 | P1 | templateId=not-exist-xxx | 404 | [构造] |
+| TC-012 | 异常-ID为空 | P1 | templateId= | 400或404 | [构造] |
+| TC-013 | 边界-ID特殊字符 | P2 | templateId=../../etc | 400 | [构造] |
+
+---
+
+### API-03: POST /v1/config-templates
+**接口描述**: 创建模板
+**依赖**: userId (⚠ 未验证，可选字段)
+**探测状态**: ✓ 已探测
+
+| 用例ID | 场景 | 优先级 | 测试数据 | 预期结果 | 数据来源 |
+|--------|------|--------|----------|----------|----------|
+| TC-020 | 正常创建-必填字段 | P0 | templateName=测试模板, templateType=1 | 200, 返回ID | [探测✓] |
+| TC-021 | 正常创建-全部字段 | P0 | 全部字段 | 200 | [探测✓] |
+| TC-022 | 异常-缺少templateName | P1 | templateType=1 | 400 | [构造] |
+| TC-023 | 异常-缺少templateType | P1 | templateName=xxx | 400 | [构造] |
+| TC-024 | 边界-templateName超长 | P2 | templateName=a*1000 | 400 | [构造] |
+| TC-025 | 边界-templateType无效值 | P2 | templateType=999 | 400 | [构造] |
+
+---
+
+### API-04: PUT /v1/config-templates
+**接口描述**: 更新模板
+**依赖**: templateId (✓ 已验证)
+**探测状态**: ✓ 已探测
+
+| 用例ID | 场景 | 优先级 | 测试数据 | 预期结果 | 数据来源 |
+|--------|------|--------|----------|----------|----------|
+| TC-030 | 正常更新 | P0 | pkCollectTemplate=tpl-001, templateDesc=更新 | 200 | [探测✓] |
+| TC-031 | 异常-ID不存在 | P1 | pkCollectTemplate=not-exist | 404 | [构造] |
+| TC-032 | 异常-缺少ID | P1 | 无pkCollectTemplate | 400 | [构造] |
+
+---
+
+### API-05: DELETE /v1/config-templates/{{templateId}}
+**接口描述**: 删除模板
+**依赖**: templateId (✓ 已验证)
+**探测状态**: ✓ 已探测
+**特殊说明**: 删除测试需先创建数据，避免删除探测数据
+
+| 用例ID | 场景 | 优先级 | 测试数据 | 预期结果 | 数据来源 |
+|--------|------|--------|----------|----------|----------|
+| TC-040 | 正常删除(先创建) | P0 | 新建后删除 | 200 | [构造] |
+| TC-041 | 异常-ID不存在 | P1 | templateId=not-exist | 404 | [构造] |
+| TC-042 | 异常-删除默认模板 | P1 | 默认模板ID | 400(业务拒绝) | [探测✓] |
 ```
 
-## 测试用例覆盖要求
+---
 
-1. **正向测试**
-   - 正常参数调用，验证成功响应
+## 测试用例覆盖标准
 
-2. **参数验证**
-   - 必填参数缺失
-   - 参数类型错误
-   - 参数格式错误
+### 1. 正向测试 (P0) - 必须通过
+- 使用已验证的探测数据
+- 覆盖核心业务流程
+- 必须包含后置验证
 
-3. **认证测试** (如有security定义)
-   - 无Token
-   - 错误Token
+### 2. 参数验证 (P1) - 应该通过
+- 必填参数缺失测试
+- 参数类型错误测试
+- 无效ID/不存在资源测试
 
-4. **边界测试**
-   - 空值、极值、特殊字符
+### 3. 边界测试 (P2) - 建议通过
+- 空值、空字符串
+- 超长字符串、极值
+- 特殊字符、注入测试
+{mode_note}
 
-5. **业务规则** (如有)
-   - 按业务规则验证逻辑{mode_note}
+---
 
-## 用例ID规则
-- 格式: TC-XXX (三位数字)
-- 按API分组，每个API内顺序编号
+## 用例ID编号规则
+- TC-001 ~ TC-009: 第1个接口
+- TC-010 ~ TC-019: 第2个接口
+- TC-0X0 ~ TC-0X9: 第X个接口
+- 每个接口内: 正向(X0-X3)、异常(X4-X6)、边界(X7-X9)
+
+---
+
+## 输出文件清单
+
+完成本阶段后，`{output_dir}` 目录应包含：
+
+1. **dependency_analysis.json** - 静态依赖分析结果
+2. **exploration_log.json** - 动态试探调用日志
+3. **explored_data.json** - 验证后的探测数据（供代码生成阶段使用）
+4. **testcases.md** - 测试用例文档
+
+---
+
+## 重要提醒
+
+1. **必须执行试探调用**：不要跳过第二阶段，真实数据对测试质量至关重要
+2. **记录所有失败**：探测失败要详细记录原因，便于后续分析
+3. **标记数据来源**：每个测试数据都要标注来源，便于追溯
+4. **验证依赖链**：不只是获取ID，要验证这个ID能否在下游接口使用

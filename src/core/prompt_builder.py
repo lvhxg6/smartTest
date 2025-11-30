@@ -9,6 +9,7 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+from collections import defaultdict
 
 from ..models import TaskContext, TestMode, ErrorInfo
 
@@ -73,15 +74,40 @@ class PromptBuilder:
         if not is_complete:
             mode_note = "\n\n注意: 当前为轻量模式，无业务规则，仅基于Swagger进行契约测试。"
 
-        prompt = template.format(
-            requirements_section=requirements_section,
-            swagger_content=context.swagger.raw_content,
-            requirements_content=requirements_content,
-            data_content=data_content,
-            output_dir=context.output_dir,
-            timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            mode_note=mode_note
-        )
+        analysis_block = ""
+        exploration_block = ""
+        if getattr(context, "dependency_analysis", None):
+            analysis_block = context.dependency_analysis.to_prompt_block()
+        if getattr(context, "exploration_data", None):
+            exploration_block = context.exploration_data.to_prompt_block()
+
+        format_args = {
+            "requirements_section": requirements_section,
+            "swagger_content": context.swagger.raw_content,
+            "requirements_content": requirements_content,
+            "data_content": data_content,
+            "output_dir": context.output_dir,
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "mode_note": mode_note,
+            "base_url": context.config.base_url,
+            "auth_token": context.config.auth_token or "",
+            "dependency_analysis_block": analysis_block or "（本地依赖分析结果为空）",
+            "exploration_block": exploration_block or "（未启用或未获取到探测数据）"
+        }
+
+        prompt = template.format_map(defaultdict(str, format_args))
+
+        extra_blocks = []
+        analysis = getattr(context, "dependency_analysis", None)
+        if analysis:
+            extra_blocks.append("## 预计算依赖分析\n" + analysis.to_prompt_block())
+
+        exploration = getattr(context, "exploration_data", None)
+        if exploration:
+            extra_blocks.append("## 探测数据\n" + exploration.to_prompt_block())
+
+        if extra_blocks:
+            prompt = f"{prompt}\n\n" + "\n\n".join(extra_blocks)
 
         return PromptPackage(
             prompt=prompt,
@@ -103,16 +129,39 @@ class PromptBuilder:
         if context.has_data_assets:
             data_content = f"\n## 业务数据\n{context.data_assets}"
 
-        prompt = template.format(
-            testcases_file=testcases_file,
-            swagger_content=context.swagger.raw_content,
-            requirements_content=requirements_content,
-            data_content=data_content,
-            base_url=context.config.base_url,
-            auth_token=context.config.auth_token or "",
-            timeout=context.config.timeout,
-            output_dir=context.output_dir
-        )
+        analysis_block = ""
+        exploration_block = ""
+        if getattr(context, "dependency_analysis", None):
+            analysis_block = context.dependency_analysis.to_prompt_block(limit=6)
+        if getattr(context, "exploration_data", None):
+            exploration_block = context.exploration_data.to_prompt_block(limit=6)
+
+        format_args = {
+            "testcases_file": testcases_file,
+            "swagger_content": context.swagger.raw_content,
+            "requirements_content": requirements_content,
+            "data_content": data_content,
+            "base_url": context.config.base_url,
+            "auth_token": context.config.auth_token or "",
+            "timeout": context.config.timeout,
+            "output_dir": context.output_dir,
+            "dependency_analysis_block": analysis_block or "（本地依赖分析结果为空）",
+            "exploration_block": exploration_block or "（未启用或未获取到探测数据）"
+        }
+
+        prompt = template.format_map(defaultdict(str, format_args))
+
+        extra_blocks = []
+        analysis = getattr(context, "dependency_analysis", None)
+        if analysis:
+            extra_blocks.append("## 预计算依赖分析\n" + analysis.to_prompt_block(limit=6))
+
+        exploration = getattr(context, "exploration_data", None)
+        if exploration:
+            extra_blocks.append("## 探测数据\n" + exploration.to_prompt_block(limit=6))
+
+        if extra_blocks:
+            prompt = f"{prompt}\n\n" + "\n\n".join(extra_blocks)
 
         return PromptPackage(
             prompt=prompt,

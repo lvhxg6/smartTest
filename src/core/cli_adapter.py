@@ -41,6 +41,10 @@ class CLIConfig:
     retry_delay: float = 2.0
     # 日志回调 (用于 Web UI 实时输出)
     on_output: Optional[Callable[[str], None]] = None
+    # Todo 更新回调 (用于 Web UI 展示任务进度)
+    on_todo_update: Optional[Callable[[List[Dict[str, Any]]], None]] = None
+    # 取消事件（由上层注入），用于中断长时间的 CLI 调用
+    cancel_event: Optional[Any] = None
 
 
 class CLIAdapter:
@@ -121,12 +125,21 @@ class CLIAdapter:
         if not cleaned:
             return
 
-        # 控制单条日志长度，避免刷屏
-        max_len = 400
-        if len(cleaned) > max_len:
-            cleaned = cleaned[:max_len] + "..."
-
-        self.config.on_output(f"→ Claude: {cleaned}")
+        # 检查是否是多行内容（如列表、优先级分布等）
+        if "\n" in cleaned:
+            lines = cleaned.split("\n")
+            for line in lines:
+                line = line.strip()
+                if line:
+                    # 单行最大 500 字符
+                    if len(line) > 500:
+                        line = line[:500] + "..."
+                    self.config.on_output(f"→ {line}")
+        else:
+            # 单行内容，限制 500 字符
+            if len(cleaned) > 500:
+                cleaned = cleaned[:500] + "..."
+            self.config.on_output(f"→ {cleaned}")
 
     def _extract_text(self, event: Dict[str, Any]) -> str:
         """从 stream-json 事件中提取文本内容"""
@@ -239,6 +252,8 @@ class CLIAdapter:
         elif event_type == "assistant":
             # Claude 的回复
             message = event.get("message", {})
+            if not isinstance(message, dict):
+                message = {}
             content_list = message.get("content", [])
 
             if isinstance(content_list, list):
@@ -250,6 +265,12 @@ class CLIAdapter:
                     if item_type == "tool_use":
                         tool_name = content_item.get("name", "unknown")
                         tool_input = content_item.get("input", {})
+                        # 特殊处理 TodoWrite：推送 todo 列表（不输出冗长 raw）
+                        if tool_name == "TodoWrite":
+                            if self.config.on_todo_update and isinstance(tool_input, dict):
+                                todos = tool_input.get("todos", [])
+                                if todos:
+                                    self.config.on_todo_update(todos)
                         # 获取工具输入的详细描述
                         detail = self._format_tool_input(tool_name, tool_input)
                         if detail:
@@ -265,13 +286,13 @@ class CLIAdapter:
                 if text:
                     self._emit_chunk(text)
 
-        elif event_type in {"message_start", "content_block_start"}:
+        elif event_type in {"message_start", "content_block_start"} or str(event_type).endswith("_start"):
             # 新版 stream-json 开头事件
             text = self._extract_text(event)
             if text:
                 self._emit_chunk(text)
 
-        elif event_type in {"content_block_delta", "message_delta", "delta"}:
+        elif event_type in {"content_block_delta", "message_delta", "delta"} or str(event_type).endswith("delta"):
             # 新版增量事件，直接透出
             text = self._extract_text(event)
             if text:
@@ -280,7 +301,7 @@ class CLIAdapter:
         elif event_type == "user":
             # 工具执行结果
             tool_result = event.get("tool_use_result", {})
-            if tool_result:
+            if tool_result and isinstance(tool_result, dict):
                 result_type = tool_result.get("type", "")
                 file_path = tool_result.get("filePath", "")
                 file_name = file_path.split("/")[-1] if file_path and "/" in file_path else file_path
@@ -293,7 +314,10 @@ class CLIAdapter:
             else:
                 # 可能是其他类型的 user 消息（如工具返回的文本结果）
                 message = event.get("message", {})
-                content = message.get("content", [])
+                if isinstance(message, dict):
+                    content = message.get("content", [])
+                else:
+                    content = []
                 if isinstance(content, list) and content:
                     first = content[0]
                     if isinstance(first, dict) and first.get("type") == "tool_result":
@@ -320,7 +344,14 @@ class CLIAdapter:
             duration = event.get("duration_ms", 0) / 1000  # 转换为秒
             self.config.on_output(f"→ 执行完成 (轮次: {num_turns}, 耗时: {duration:.1f}s, 费用: ${cost:.4f})")
 
-        # 忽略未知事件，减少噪音
+        else:
+            # 兜底处理未知事件，避免静默导致前端看起来“卡住”
+            text = self._extract_text(event)
+            if text:
+                self._emit_chunk(text)
+            else:
+                unknown = event_type or "unknown"
+                self.config.on_output(f"→ 事件: {unknown}")
 
     def execute(
         self,
@@ -345,6 +376,8 @@ class CLIAdapter:
         final_result = None
         all_events = []
         stderr_output = ""
+        cancelled = False
+        cancel_event = getattr(self.config, "cancel_event", None)
 
         # 创建临时文件存储 prompt，避免管道缓冲区问题
         prompt_file = None
@@ -381,20 +414,47 @@ class CLIAdapter:
 
                 try:
                     event = json.loads(line)
-                    all_events.append(event)
+                    if isinstance(event, dict):
+                        all_events.append(event)
 
-                    # 处理关键节点回调
-                    self._handle_stream_event(event)
+                        # 处理关键节点回调
+                        self._handle_stream_event(event)
 
-                    # 保存最终结果
-                    if event.get("type") == "result":
-                        final_result = event
+                        # 保存最终结果
+                        if event.get("type") == "result":
+                            final_result = event
+                    else:
+                        logger.debug(f"Ignored non-dict event: {line[:80]}")
 
                 except json.JSONDecodeError:
                     logger.debug(f"Non-JSON line: {line[:100]}")
+                    # 透传原始输出，兼容 CLI 输出格式变化
+                    if self.config.on_output:
+                        preview = line[:400]
+                        self.config.on_output(f"→ CLI: {preview}")
+
+                # 检查取消信号，及时终止 CLI 进程
+                if cancel_event and getattr(cancel_event, "is_set", lambda: False)():
+                    cancelled = True
+                    if self.config.on_output:
+                        self.config.on_output("→ 任务取消，正在终止 CLI 进程...")
+                    try:
+                        process.kill()
+                    except Exception:
+                        pass
+                    break
 
             # 读取 stderr
             stderr_output = process.stderr.read()
+
+            # 若在循环外收到取消信号，再次尝试终止
+            if cancel_event and getattr(cancel_event, "is_set", lambda: False)():
+                cancelled = True
+                if process.poll() is None:
+                    try:
+                        process.kill()
+                    except Exception:
+                        pass
 
             # 等待进程结束，带超时
             try:
@@ -404,6 +464,17 @@ class CLIAdapter:
                 raise
 
             execution_time = time.time() - start_time
+
+            if cancelled:
+                if self.config.on_output:
+                    self.config.on_output("→ CLI 已终止")
+                return CLIResult(
+                    success=False,
+                    error="任务已取消",
+                    exit_code=-2,
+                    execution_time=execution_time,
+                    session_id=self.session_id
+                )
 
             # 解析最终结果
             if final_result:
@@ -415,11 +486,19 @@ class CLIAdapter:
                 if session_id:
                     self.session_id = session_id
 
+                # 提取更有用的错误信息
+                error_msg = None
+                if is_error:
+                    error_msg = actual_result or final_result.get("error") or stderr_output
+                    # 兜底使用返回码描述
+                    if not error_msg and return_code != 0:
+                        error_msg = f"CLI exited with code {return_code}"
+
                 return CLIResult(
                     success=return_code == 0 and not is_error,
                     output=actual_result,
                     parsed_output=final_result,
-                    error=stderr_output if return_code != 0 else None,
+                    error=error_msg if error_msg else (stderr_output if return_code != 0 else None),
                     exit_code=return_code,
                     execution_time=execution_time,
                     session_id=self.session_id,

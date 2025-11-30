@@ -12,9 +12,11 @@ import json
 import uuid
 import logging
 import threading
+import zipfile
+from io import BytesIO
 from pathlib import Path
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
 from flask_socketio import SocketIO, emit
@@ -30,6 +32,7 @@ app = Flask(__name__,
     static_folder=str(Path(__file__).parent / "static")
 )
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'nexus-ai-test-agent-secret')
+app.config['TEMPLATES_AUTO_RELOAD'] = True  # 禁用模板缓存
 
 # WebSocket
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
@@ -75,6 +78,13 @@ class TaskManager:
             'success': report.success
         }, namespace='/ws')
 
+    def emit_todos(self, todos: List[Dict[str, Any]]) -> None:
+        """通过 WebSocket 发送 Todo 列表"""
+        socketio.emit('todos', {
+            'task_id': self.task_id,
+            'todos': todos
+        }, namespace='/ws')
+
 
 def create_output_dir(base_dir: str = "./output") -> str:
     """创建带时间戳的输出目录"""
@@ -85,7 +95,7 @@ def create_output_dir(base_dir: str = "./output") -> str:
     return str(output_dir)
 
 
-def run_workflow_task(task_id: str, params: Dict[str, Any]) -> None:
+def run_workflow_task(task_id: str, params: Dict[str, Any], cancel_event: threading.Event) -> None:
     """在后台线程中运行工作流"""
     manager = TaskManager(task_id)
     tasks[task_id]['manager'] = manager
@@ -118,12 +128,22 @@ def run_workflow_task(task_id: str, params: Dict[str, Any]) -> None:
         # 配置工作流
         workflow_config = WorkflowConfig(
             on_state_change=manager.emit_state,
-            on_log=manager.emit_log
+            on_log=manager.emit_log,
+            on_todo_update=manager.emit_todos,  # Todo 进度回调
+            enable_exploration=params.get('enable_exploration', False),
+            cancel_event=cancel_event
         )
 
         # 运行工作流
         engine = WorkflowEngine(context, workflow_config)
         report = engine.run()
+
+        # 若返回 None，说明被用户取消
+        if report is None:
+            manager.status = "cancelled"
+            tasks[task_id]['status'] = "cancelled"
+            manager.emit_log("warning", "system", "任务已取消")
+            return
 
         # 保存结果
         manager.report = report
@@ -188,22 +208,27 @@ def api_run():
             'base_url': data['base_url'],
             'auth_token': data.get('auth_token'),
             'requirements': data.get('requirements'),
-            'data_assets': data.get('data_assets')
+            'data_assets': data.get('data_assets'),
+            'enable_exploration': bool(data.get('enable_exploration'))
         }
+
+        cancel_event = threading.Event()
 
         tasks[task_id] = {
             'id': task_id,
             'status': 'pending',
             'created_at': datetime.now().isoformat(),
-            'params': params
+            'params': params,
+            'cancel_event': cancel_event
         }
 
         # 启动后台任务
         thread = threading.Thread(
             target=run_workflow_task,
-            args=(task_id, params)
+            args=(task_id, params, cancel_event)
         )
         thread.daemon = True
+        tasks[task_id]['thread'] = thread
         thread.start()
 
         return jsonify({
@@ -245,7 +270,7 @@ def api_download(task_id: str, file_type: str):
 
     Args:
         task_id: 任务ID
-        file_type: 文件类型 (html, xml, json, testcases)
+        file_type: 文件类型 (html, xml, json, testcases, tests, business)
     """
     if task_id not in tasks:
         return jsonify({'error': 'Task not found'}), 404
@@ -261,11 +286,34 @@ def api_download(task_id: str, file_type: str):
     if not output_path.is_absolute():
         output_path = Path.cwd() / output_path
 
+    # 处理 tests 打包下载
+    if file_type == 'tests':
+        tests_dir = output_path / 'tests'
+        if not tests_dir.exists():
+            return jsonify({'error': 'Tests directory not found'}), 404
+
+        # 打包 tests 目录为 zip
+        zip_buffer = BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for file in tests_dir.rglob('*'):
+                if file.is_file():
+                    arcname = file.relative_to(tests_dir)
+                    zf.write(file, arcname)
+
+        zip_buffer.seek(0)
+        return send_file(
+            zip_buffer,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name='tests.zip'
+        )
+
     file_map = {
         'html': output_path / 'reports' / 'report.html',
         'xml': output_path / 'reports' / 'results.xml',
         'json': output_path / 'bug_report.json',
-        'testcases': output_path / 'testcases.md'
+        'testcases': output_path / 'testcases.md',
+        'business': output_path / 'reports' / 'business_report.html'
     }
 
     if file_type not in file_map:
@@ -294,6 +342,22 @@ def api_tasks():
             'created_at': task.get('created_at')
         })
     return jsonify({'tasks': task_list})
+
+
+@app.route('/api/cancel/<task_id>', methods=['POST'])
+def api_cancel(task_id: str):
+    """取消正在执行的任务"""
+    task = tasks.get(task_id)
+    if not task:
+        return jsonify({'error': 'Task not found'}), 404
+
+    cancel_event = task.get('cancel_event')
+    if cancel_event:
+        cancel_event.set()
+        task['status'] = 'cancelled'
+        return jsonify({'message': 'Task cancellation requested'}), 200
+
+    return jsonify({'error': 'Cancel event not available'}), 400
 
 
 # ============== WebSocket 事件 ==============
