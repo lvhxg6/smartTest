@@ -26,6 +26,8 @@
 
 {data_mapping_block}
 
+{test_data_content_block}
+
 ## 环境配置
 - Base URL: {base_url}
 - Auth Token: {auth_token}
@@ -271,31 +273,51 @@ def test_discount_rule_100(self, api_client, base_url):
 
 ### 数据驱动测试
 
+⚠️ **强制要求**: 如果上方存在「用户上传的测试数据内容」，必须：
+1. 将上传的 JSON 数据复制为 Python 列表常量
+2. 使用 `@pytest.mark.parametrize` 进行数据驱动测试
+3. 每行数据生成一个独立的测试用例
+4. 测试文件命名: `test_data_*.py`
+
 如果「测试数据映射」非空，使用 pytest 参数化从用户上传的测试数据生成测试：
 
 ```python
-# 从用户上传的测试数据生成（示例）
-TEST_DATA_USER_REGISTER = [
-    {{"username": "test1", "email": "test1@xx.com", "phone": "13800001111", "expected_code": 200}},
-    {{"username": "", "email": "test2@xx.com", "phone": "13800002222", "expected_code": 400}},
-    {{"username": "test3", "email": "invalid-email", "phone": "13800003333", "expected_code": 400}},
+# ⚠️ 必须从上方「用户上传的测试数据内容」中复制实际数据
+# 示例：假设上传了检查项数据
+TEST_DATA_CHECKITEMS = [
+    {{"检查项ID": "186242eecb1f45ddaabed189244f287e", "检查项名称": "检查是否为Oozie开启kerberos认证", "是否必选": "否"}},
+    {{"检查项ID": "2255dc61a9ea453888fdddcffed26ffe", "检查项名称": "4.1.2.3 检查口令重复次数限制", "是否必选": "是"}},
+    # ... 必须包含所有上传的数据行
 ]
 
 # TestCase: TC-DATA-001
 @pytest.mark.p0
-@pytest.mark.parametrize("data", TEST_DATA_USER_REGISTER)
-def test_user_register_data_driven(self, api_client, base_url, data):
-    """数据驱动测试: 用户注册"""
-    response = api_client.post(f"{{base_url}}/users/register", json={{
-        "username": data["username"],
-        "email": data["email"],
-        "phone": data["phone"]
-    }})
-    assert response.status_code == data["expected_code"], \
-        f"用户 {{data['username']}} 注册期望 {{data['expected_code']}}，实际 {{response.status_code}}"
+@pytest.mark.parametrize("row", TEST_DATA_CHECKITEMS)
+def test_add_checkitem_data_driven(self, api_client, base_url, row):
+    """数据驱动测试: 添加检查项 - 使用上传的测试数据"""
+    # 从数据行中提取字段
+    checkitem_id = row.get("检查项ID")
+    is_required = row.get("是否必选") == "是"
+
+    response = api_client.patch(
+        f"{{base_url}}/v3/config-templates/selectTemplate/{{template_id}}",
+        json={{"pkAssets": [checkitem_id]}}
+    )
+
+    # 根据数据中的预期结果进行断言
+    if is_required:
+        assert response.status_code == 200, f"必选检查项 {{checkitem_id}} 添加失败"
+    else:
+        # 非必选项可能有不同的业务逻辑
+        assert response.status_code in [200, 400]
 ```
 
-**重要**:
+**关键点**:
+- `TEST_DATA_XXX` 列表必须包含上传数据中的**所有行**
+- 列名必须与上传数据的列名**完全一致**（包括中文）
+- 如果数据中有"预期结果"或"期望状态码"列，必须用于断言
+
+**文件命名规范**:
 - 场景测试文件命名: `test_scenario_*.py`
 - 规则测试文件命名: `test_rule_*.py`
 - 数据驱动测试文件命名: `test_data_*.py`

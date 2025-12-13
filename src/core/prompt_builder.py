@@ -307,6 +307,34 @@ class PromptBuilder:
                 data_mapping_block += "\n"
             logger.info(f"已注入 {len(context.data_mapping)} 个数据映射到生成 Prompt")
 
+        # 新增：注入实际测试数据内容（用于数据驱动测试）
+        test_data_content_block = ""
+        if context.test_data_files:
+            try:
+                import json
+                test_data = DataLoader.load_multiple(context.test_data_files)
+                if test_data:
+                    test_data_content_block = "## 用户上传的测试数据内容（必须用于数据驱动测试）\n\n"
+                    test_data_content_block += "**⚠️ 强制要求**: 必须使用以下数据生成 `@pytest.mark.parametrize` 数据驱动测试。\n\n"
+
+                    for dataset_name, rows in test_data.items():
+                        if not rows:
+                            continue
+                        test_data_content_block += f"### 数据集: {dataset_name}\n"
+                        test_data_content_block += f"- 总行数: {len(rows)}\n"
+                        test_data_content_block += f"- 列: {list(rows[0].keys())}\n"
+                        test_data_content_block += "- 数据内容:\n```json\n"
+                        # 输出所有数据行（限制合理数量避免 prompt 过长）
+                        max_rows = 50
+                        test_data_content_block += json.dumps(rows[:max_rows], ensure_ascii=False, indent=2)
+                        if len(rows) > max_rows:
+                            test_data_content_block += f"\n// ... 还有 {len(rows) - max_rows} 行"
+                        test_data_content_block += "\n```\n\n"
+
+                    logger.info(f"已注入 {len(test_data)} 个测试数据集内容到生成 Prompt")
+            except Exception as e:
+                logger.warning(f"加载测试数据内容失败: {e}")
+
         format_args = {
             "testcases_file": testcases_file,
             "swagger_content": context.swagger.raw_content,
@@ -322,7 +350,8 @@ class PromptBuilder:
             # 新增：业务测试相关
             "scenarios_block": scenarios_block,
             "rules_block": rules_block,
-            "data_mapping_block": data_mapping_block
+            "data_mapping_block": data_mapping_block,
+            "test_data_content_block": test_data_content_block
         }
 
         prompt = template.format_map(defaultdict(str, format_args))

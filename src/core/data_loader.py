@@ -123,8 +123,26 @@ class DataLoader:
         """
         logger.info(f"加载 CSV 文件: {file_path}")
 
-        # 尝试多种编码
-        encodings = [encoding, 'utf-8-sig', 'gbk', 'gb2312', 'latin-1']
+        # 尝试使用 chardet 自动检测编码
+        detected_encoding = None
+        try:
+            import chardet
+            with open(file_path, 'rb') as f:
+                raw = f.read(10000)
+                detected = chardet.detect(raw)
+                if detected and detected.get('confidence', 0) > 0.7:
+                    detected_encoding = detected['encoding']
+                    logger.info(f"自动检测编码: {detected_encoding} (置信度: {detected['confidence']:.0%})")
+        except ImportError:
+            pass  # chardet 未安装，使用 fallback 列表
+
+        # 构建编码尝试列表（检测到的编码优先）
+        encodings = [encoding, 'utf-8-sig', 'gbk', 'gb2312', 'gb18030', 'big5', 'cp936', 'latin-1']
+        if detected_encoding:
+            encodings.insert(0, detected_encoding)
+        # 去重保持顺序
+        seen = set()
+        encodings = [x for x in encodings if not (x in seen or seen.add(x))]
 
         for enc in encodings:
             try:
@@ -133,8 +151,15 @@ class DataLoader:
                     sample = f.read(4096)
                     f.seek(0)
 
-                    dialect = csv.Sniffer().sniff(sample, delimiters=',;\t|')
-                    reader = csv.DictReader(f, dialect=dialect)
+                    # 尝试使用 Sniffer 检测分隔符，失败时使用默认逗号
+                    try:
+                        dialect = csv.Sniffer().sniff(sample, delimiters=',;\t|')
+                        reader = csv.DictReader(f, dialect=dialect)
+                    except csv.Error:
+                        # Sniffer 失败（可能是数据中有未转义的逗号），使用默认逗号分隔
+                        logger.debug(f"Sniffer 无法确定分隔符，使用默认逗号分隔")
+                        f.seek(0)
+                        reader = csv.DictReader(f, delimiter=',')
 
                     rows = []
                     for row in reader:
@@ -150,7 +175,7 @@ class DataLoader:
                     logger.info(f"  CSV: {len(rows)} 行")
                     return rows
 
-            except (UnicodeDecodeError, csv.Error):
+            except UnicodeDecodeError:
                 continue
 
         raise ValueError(f"无法解析 CSV 文件，尝试的编码: {encodings}")
