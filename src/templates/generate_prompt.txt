@@ -492,3 +492,228 @@ def test_xxx(self, api_client, base_url, explored_data):
 2. **增删改操作必须有后置验证**，确认操作真正生效
 3. **探测失败时使用 pytest.skip()**，而不是硬编码假数据导致误报
 4. **测试函数要有清晰的注释**，说明测试意图和数据来源
+
+---
+
+## 断言最佳实践规范（强制执行）
+
+⚠️ **重要**: 断言是测试质量的核心。以下规范必须严格遵守，以避免生成低质量的测试代码。
+
+### 1. 完整的响应验证（三层断言）
+
+每个API测试必须包含三层断言，而不是只检查HTTP状态码：
+
+```python
+# ❌ 错误示例：只检查状态码
+def test_query_templates_bad(self, api_client, base_url):
+    response = api_client.get(f"{{base_url}}/v3/config-templates")
+    assert response.status_code == 200  # 这不够！
+
+# ✅ 正确示例：三层断言
+def test_query_templates_good(self, api_client, base_url):
+    response = api_client.get(f"{{base_url}}/v3/config-templates")
+
+    # 第一层：HTTP状态码
+    assert response.status_code == 200, f"请求失败: {{response.status_code}}, {{response.text}}"
+
+    # 第二层：业务状态字段
+    result = response.json()
+    assert result.get("success") is True, f"业务失败: {{result}}"
+
+    # 第三层：业务数据验证
+    data = result.get("data") or result.get("entity")
+    assert data is not None, f"返回数据为空: {{result}}"
+```
+
+### 2. 状态码断言规范
+
+**必须考虑所有可能的有效状态码**：
+
+```python
+# ❌ 错误示例：状态码范围过窄
+assert response.status_code in [200, 400]  # 缺少 422
+
+# ✅ 正确示例：包含所有有效状态码
+# 对于参数验证类测试
+assert response.status_code in [200, 400, 422], \
+    f"意外的状态码: {{response.status_code}}, 响应: {{response.text}}"
+
+# 对于删除/查询不存在资源
+assert response.status_code in [200, 400, 404], \
+    f"意外的状态码: {{response.status_code}}"
+```
+
+**常见HTTP状态码参考**：
+| 状态码 | 含义 | 使用场景 |
+|--------|------|----------|
+| 200 | 成功 | 正常操作成功 |
+| 400 | 错误请求 | 参数格式错误 |
+| 404 | 未找到 | 资源不存在 |
+| **422** | 实体不可处理 | **参数验证失败（常见！）** |
+| 500 | 服务器错误 | 后端Bug（应报告而非通过） |
+
+### 3. 负面测试断言规范
+
+对于"应该失败"的测试场景：
+
+```python
+# ❌ 错误示例：只检查是否失败
+def test_invalid_input_bad(self, api_client, base_url):
+    response = api_client.post(f"{{base_url}}/templates", json={{"name": ""}})
+    assert response.status_code != 200  # 太模糊
+
+# ✅ 正确示例：精确验证失败原因
+def test_invalid_input_good(self, api_client, base_url):
+    response = api_client.post(f"{{base_url}}/templates", json={{"name": ""}})
+    result = response.json()
+
+    # 方式1：检查业务状态
+    assert result.get("success") is False or response.status_code in [400, 422], \
+        f"空名称应该失败: {{result}}"
+
+    # 方式2：如果返回200，检查业务层失败
+    if response.status_code == 200:
+        assert result.get("success") is False, f"空名称创建应返回失败: {{result}}"
+```
+
+### 4. 字段值断言规范
+
+处理可能存在特殊值的字段：
+
+```python
+# ❌ 错误示例：精确匹配可能失败
+expected_name = "中国移动安全配置规范"
+assert entity.get("bookName") == expected_name  # 实际可能是 "中国移动安全配置规范(默认)"
+
+# ✅ 正确示例：考虑字段可能的变体
+expected_name = "中国移动安全配置规范"
+actual_name = entity.get("bookName", "")
+
+# 方式1：使用 in 或 startswith
+assert expected_name in actual_name or actual_name.startswith(expected_name), \
+    f"名称不匹配: 期望包含 {{expected_name}}, 实际 {{actual_name}}"
+
+# 方式2：根据条件灵活匹配
+is_default = row.get("是否默认") == "True" or entity.get("isDefault") == 1
+if is_default:
+    # 默认模板可能有后缀
+    assert actual_name == expected_name or actual_name == f"{{expected_name}}(默认)", \
+        f"默认模板名称不匹配: {{actual_name}}"
+else:
+    assert actual_name == expected_name
+```
+
+---
+
+## 边界场景检查清单（必须处理）
+
+生成测试代码时，必须考虑以下边界场景：
+
+### 1. 分页参数边界
+
+```python
+@pytest.mark.parametrize("page,per_page,expected_codes", [
+    (1, 10, [200]),                    # 正常分页
+    (0, 10, [200, 400, 422]),          # 零页码 - 可能返回第1页或报错
+    (-1, 10, [200, 400, 422]),         # 负页码
+    (99999, 10, [200]),                # 超大页码 - 应返回空数据
+    (1, 0, [200, 400, 422]),           # 零条每页
+    (1, 1000, [200, 400, 422]),        # 超大每页
+])
+def test_pagination_boundary(self, api_client, base_url, page, per_page, expected_codes):
+    response = api_client.get(f"{{base_url}}/templates", params={{"page": page, "perPage": per_page}})
+    assert response.status_code in expected_codes, \
+        f"page={{page}}, perPage={{per_page}} 返回意外状态码: {{response.status_code}}"
+```
+
+### 2. 字符串字段边界
+
+```python
+# 空值测试
+@pytest.mark.parametrize("name,should_fail", [
+    ("", True),           # 空字符串
+    ("   ", True),        # 纯空格
+    (None, True),         # null值
+    ("a" * 101, True),    # 超长（假设限制100字符）
+    ("a" * 100, False),   # 边界值
+    ("正常名称", False),   # 正常值
+])
+def test_name_validation(self, api_client, base_url, name, should_fail):
+    data = {{"templateName": name}}
+    response = api_client.post(f"{{base_url}}/templates", json=data)
+    result = response.json()
+
+    if should_fail:
+        # 应该失败：业务返回失败 或 HTTP错误码
+        assert result.get("success") is False or response.status_code in [400, 422], \
+            f"name='{{name}}' 应该失败但返回: {{result}}"
+    else:
+        assert response.status_code == 200 and result.get("success") is True, \
+            f"name='{{name}}' 应该成功: {{result}}"
+```
+
+### 3. 操作不存在资源
+
+```python
+def test_operate_nonexistent_resource(self, api_client, base_url):
+    fake_id = "nonexistent-id-12345"
+
+    # 删除不存在的资源
+    response = api_client.delete(f"{{base_url}}/templates/{{fake_id}}")
+
+    # 可能返回多种状态码，都是合理的
+    assert response.status_code in [200, 400, 404], \
+        f"删除不存在资源返回意外状态码: {{response.status_code}}"
+
+    # 如果返回200，验证业务层失败
+    if response.status_code == 200:
+        result = response.json()
+        success = result.get("success")
+        entity = result.get("entity")
+        # 业务应返回失败或空实体
+        assert success is False or entity is None, \
+            f"删除不存在资源应返回失败: success={{success}}, entity={{entity}}"
+```
+
+### 4. 重复操作幂等性
+
+```python
+def test_duplicate_operation(self, api_client, base_url):
+    # 假设资源已经是目标状态
+    template_id = get_explored_id("enabledTemplateId")  # 已启用的模板
+
+    # 重复启用
+    response = api_client.patch(f"{{base_url}}/templates/{{template_id}}/enable")
+
+    # 可能成功（幂等）或失败（已经是该状态）
+    assert response.status_code in [200, 400, 422], \
+        f"重复启用返回意外状态码: {{response.status_code}}"
+
+    # 如果业务不允许重复操作
+    if response.status_code == 200:
+        result = response.json()
+        # 根据业务规则，可能返回失败或成功
+        # 但不应该是500错误
+```
+
+---
+
+## 断言错误消息规范
+
+所有断言必须包含有用的错误消息：
+
+```python
+# ❌ 错误示例：无错误消息
+assert response.status_code == 200
+assert result.get("success") is True
+
+# ✅ 正确示例：包含上下文信息
+assert response.status_code == 200, \
+    f"请求失败: status={{response.status_code}}, body={{response.text[:500]}}"
+
+assert result.get("success") is True, \
+    f"业务失败: {{result}}"
+
+assert entity.get("name") == expected, \
+    f"字段不匹配: 期望={{expected}}, 实际={{entity.get('name')}}, 完整响应={{result}}"
+```
