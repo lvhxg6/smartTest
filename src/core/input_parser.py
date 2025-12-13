@@ -93,7 +93,7 @@ class InputParser:
         # 解析测试数据文件 (新版)
         test_data_files: List[str] = []
         if test_data_inputs:
-            test_data_files = self._parse_test_data_files(test_data_inputs)
+            test_data_files = self._parse_test_data_files(test_data_inputs, output_dir)
 
         return TaskContext(
             swagger=swagger,
@@ -143,24 +143,87 @@ class InputParser:
 
         return PRDParser.parse(str(path))
 
+    def _save_base64_to_file(
+        self,
+        data_url: str,
+        output_dir: str,
+        index: int
+    ) -> Optional[Path]:
+        """将 base64 Data URL 保存为临时文件
+
+        Args:
+            data_url: base64 Data URL (data:mime;base64,content)
+            output_dir: 保存目录
+            index: 文件索引，用于生成唯一文件名
+
+        Returns:
+            保存后的文件路径，失败返回 None
+        """
+        import base64
+
+        try:
+            # 解析 Data URL: data:mime;base64,content
+            if ',' not in data_url:
+                logger.warning(f"无效的 Data URL 格式")
+                return None
+
+            header, encoded = data_url.split(',', 1)
+
+            # 从 MIME 类型推断文件扩展名
+            if 'spreadsheetml' in header or 'xlsx' in header:
+                ext = '.xlsx'
+            elif 'csv' in header:
+                ext = '.csv'
+            else:
+                # 尝试从 header 提取
+                ext = '.xlsx' if 'excel' in header.lower() else '.csv'
+
+            # 解码 base64 内容
+            file_content = base64.b64decode(encoded)
+
+            # 保存到输出目录
+            output_path = Path(output_dir)
+            output_path.mkdir(parents=True, exist_ok=True)
+
+            file_path = output_path / f"test_data_{index}{ext}"
+            file_path.write_bytes(file_content)
+
+            logger.info(f"Base64 测试数据保存到: {file_path}")
+            return file_path
+
+        except Exception as e:
+            logger.warning(f"Base64 测试数据解析失败: {e}")
+            return None
+
     def _parse_test_data_files(
         self,
-        test_data_inputs: List[Union[str, Path]]
+        test_data_inputs: List[Union[str, Path]],
+        output_dir: str = "./output"
     ) -> List[str]:
         """解析测试数据文件列表
 
-        验证文件存在并返回规范化的路径列表。
+        支持两种输入格式:
+        1. 文件路径字符串
+        2. Base64 编码的文件内容 (data:...;base64,xxx)
 
         Args:
-            test_data_inputs: 测试数据文件路径列表
+            test_data_inputs: 测试数据文件路径或 base64 内容列表
+            output_dir: 输出目录，用于保存 base64 解码后的临时文件
 
         Returns:
             验证后的文件路径字符串列表
         """
         valid_files = []
 
-        for input_item in test_data_inputs:
-            path = Path(input_item) if isinstance(input_item, str) else input_item
+        for idx, input_item in enumerate(test_data_inputs):
+            # 检测是否为 base64 Data URL
+            if isinstance(input_item, str) and input_item.startswith('data:'):
+                # 解析 base64 内容，保存为临时文件
+                path = self._save_base64_to_file(input_item, output_dir, idx)
+                if path is None:
+                    continue
+            else:
+                path = Path(input_item) if isinstance(input_item, str) else input_item
 
             if not path.exists():
                 logger.warning(f"测试数据文件不存在，跳过: {path}")
