@@ -189,7 +189,8 @@
 
             <!-- 结果面板 -->
             <div id="result-panel" class="h-0 transition-all duration-500 overflow-hidden border-t border-slate-800 bg-slate-900/90 backdrop-blur">
-                <div class="px-4 py-3 flex items-center gap-3 h-full">
+                <!-- 第一行：统计和下载按钮 -->
+                <div class="px-4 py-3 flex items-center gap-3">
                     <div class="bg-slate-950/50 rounded px-4 py-2 border border-slate-800 flex items-center gap-3 min-w-0">
                         <div class="text-[10px] text-slate-500 uppercase tracking-wider whitespace-nowrap">Total</div>
                         <div id="stat-total" class="text-lg font-bold text-white">-</div>
@@ -208,6 +209,10 @@
                     </div>
                     <div class="flex-1"></div>
                     <div class="flex items-center gap-2 flex-shrink-0">
+                        <button onclick="toggleLoadTestPanel()" class="bg-orange-500 hover:bg-orange-400 text-white font-bold px-3 py-1.5 rounded text-xs transition shadow-lg shadow-orange-500/20" title="压力测试">
+                            <i class="fa-solid fa-bolt mr-1"></i> 压测
+                        </button>
+                        <div class="w-px h-6 bg-slate-700"></div>
                         <button onclick="downloadReport('business')" class="bg-brand-accent hover:bg-cyan-300 text-brand-dark font-bold px-3 py-1.5 rounded text-xs transition shadow-lg shadow-cyan-500/20" title="业务级测试报告">
                             <i class="fa-solid fa-chart-pie mr-1"></i> 报告
                         </button>
@@ -220,6 +225,67 @@
                         <button onclick="downloadReport('json')" class="bg-amber-600 hover:bg-amber-500 text-white font-bold px-3 py-1.5 rounded text-xs transition" title="Bug报告">
                             <i class="fa-solid fa-bug mr-1"></i> Bug
                         </button>
+                    </div>
+                </div>
+                <!-- 第二行：压测配置面板 (可展开) -->
+                <div id="load-test-panel" class="hidden px-4 pb-3 border-t border-slate-800/50">
+                    <div class="flex items-center gap-6 py-3">
+                        <div class="text-xs text-slate-400 font-medium">压测配置:</div>
+                        <div class="flex items-center gap-4">
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="load-preset" value="light" class="text-orange-500 focus:ring-orange-500">
+                                <span class="text-xs text-slate-300">轻量 (10并发×30秒)</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="load-preset" value="standard" checked class="text-orange-500 focus:ring-orange-500">
+                                <span class="text-xs text-slate-300">标准 (50并发×60秒)</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="load-preset" value="heavy" class="text-orange-500 focus:ring-orange-500">
+                                <span class="text-xs text-slate-300">压力 (100并发×180秒)</span>
+                            </label>
+                            <label class="flex items-center gap-1.5 cursor-pointer">
+                                <input type="radio" name="load-preset" value="custom" class="text-orange-500 focus:ring-orange-500">
+                                <span class="text-xs text-slate-300">自定义</span>
+                            </label>
+                        </div>
+                        <div id="custom-load-config" class="hidden flex items-center gap-3">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs text-slate-500">并发:</span>
+                                <input type="number" id="custom-users" value="50" min="1" max="500" class="w-16 px-2 py-1 text-xs bg-slate-800 border border-slate-700 rounded text-white">
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-xs text-slate-500">时长:</span>
+                                <input type="number" id="custom-duration" value="60" min="10" max="600" class="w-16 px-2 py-1 text-xs bg-slate-800 border border-slate-700 rounded text-white">
+                                <span class="text-xs text-slate-500">秒</span>
+                            </div>
+                        </div>
+                        <div class="flex-1"></div>
+                        <button id="btn-start-load-test" onclick="startLoadTest()" class="bg-orange-500 hover:bg-orange-400 text-white font-bold px-4 py-1.5 rounded text-xs transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-play"></i> 启动压测
+                        </button>
+                    </div>
+                    <!-- 压测进度/结果 -->
+                    <div id="load-test-status" class="hidden py-2 border-t border-slate-800/50">
+                        <div class="flex items-center gap-4">
+                            <div class="flex items-center gap-2">
+                                <i id="load-test-icon" class="fa-solid fa-spinner fa-spin text-orange-400"></i>
+                                <span id="load-test-state" class="text-xs text-slate-300">准备中...</span>
+                            </div>
+                            <div class="flex items-center gap-4 text-xs">
+                                <span class="text-slate-500">请求: <span id="lt-requests" class="text-white font-bold">0</span></span>
+                                <span class="text-slate-500">失败: <span id="lt-failures" class="text-red-400 font-bold">0</span></span>
+                                <span class="text-slate-500">RPS: <span id="lt-rps" class="text-cyan-400 font-bold">0</span></span>
+                                <span class="text-slate-500">平均响应: <span id="lt-avg-time" class="text-green-400 font-bold">0</span>ms</span>
+                            </div>
+                            <div class="flex-1"></div>
+                            <button id="btn-stop-load-test" onclick="stopLoadTest()" class="hidden bg-red-600 hover:bg-red-500 text-white font-bold px-3 py-1 rounded text-xs transition">
+                                <i class="fa-solid fa-stop mr-1"></i> 停止
+                            </button>
+                            <button id="btn-view-load-report" onclick="viewLoadTestReport()" class="hidden bg-cyan-600 hover:bg-cyan-500 text-white font-bold px-3 py-1 rounded text-xs transition">
+                                <i class="fa-solid fa-chart-line mr-1"></i> 查看报告
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -574,6 +640,32 @@
                 }
             });
 
+            // 压力测试事件
+            socket.on('load_test_progress', (data) => {
+                if (data.load_test_id === currentLoadTestId) {
+                    updateLoadTestProgress(data);
+                    document.getElementById('load-test-state').innerText = '压测进行中...';
+                }
+            });
+
+            socket.on('load_test_log', (data) => {
+                if (data.load_test_id === currentLoadTestId) {
+                    addLog(data.message, 'info', 'load-test');
+                }
+            });
+
+            socket.on('load_test_complete', (data) => {
+                if (data.load_test_id === currentLoadTestId) {
+                    onLoadTestComplete(data);
+                }
+            });
+
+            socket.on('load_test_error', (data) => {
+                if (data.load_test_id === currentLoadTestId) {
+                    onLoadTestError(data);
+                }
+            });
+
             socket.on('todos', (data) => {
                 if (data.task_id === currentTaskId) {
                     updatePhaseTodos(data.todos);
@@ -647,6 +739,128 @@
             }
 
             resultPanel.style.height = '56px';
+        }
+
+        // ============== 压力测试 ==============
+        let currentLoadTestId = null;
+
+        function toggleLoadTestPanel() {
+            const panel = document.getElementById('load-test-panel');
+            panel.classList.toggle('hidden');
+            // 调整结果面板高度
+            if (panel.classList.contains('hidden')) {
+                resultPanel.style.height = '56px';
+            } else {
+                resultPanel.style.height = 'auto';
+            }
+        }
+
+        // 监听预设选择变化，显示/隐藏自定义配置
+        document.querySelectorAll('input[name="load-preset"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const customConfig = document.getElementById('custom-load-config');
+                if (e.target.value === 'custom') {
+                    customConfig.classList.remove('hidden');
+                } else {
+                    customConfig.classList.add('hidden');
+                }
+            });
+        });
+
+        async function startLoadTest() {
+            if (!currentTaskId) {
+                alert('请先完成功能测试');
+                return;
+            }
+
+            const preset = document.querySelector('input[name="load-preset"]:checked').value;
+            let requestBody = { task_id: currentTaskId };
+
+            if (preset === 'custom') {
+                requestBody.concurrent_users = parseInt(document.getElementById('custom-users').value);
+                requestBody.duration = parseInt(document.getElementById('custom-duration').value);
+                requestBody.spawn_rate = Math.ceil(requestBody.concurrent_users / 5);
+            } else {
+                requestBody.preset = preset;
+            }
+
+            // 更新 UI 状态
+            document.getElementById('btn-start-load-test').disabled = true;
+            document.getElementById('btn-start-load-test').innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 启动中...';
+            document.getElementById('load-test-status').classList.remove('hidden');
+            document.getElementById('btn-stop-load-test').classList.remove('hidden');
+            document.getElementById('btn-view-load-report').classList.add('hidden');
+
+            try {
+                const response = await fetch('/api/load-test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    currentLoadTestId = data.load_test_id;
+                    document.getElementById('load-test-state').innerText = '正在生成压测脚本...';
+                    addLog(`压力测试已启动: ${currentLoadTestId}`, 'info', 'load-test');
+                } else {
+                    throw new Error(data.error || '启动失败');
+                }
+            } catch (e) {
+                alert('启动压测失败: ' + e.message);
+                resetLoadTestUI();
+            }
+        }
+
+        async function stopLoadTest() {
+            if (!currentLoadTestId) return;
+
+            try {
+                await fetch(`/api/load-test/${currentLoadTestId}/stop`, { method: 'POST' });
+                document.getElementById('load-test-state').innerText = '已停止';
+                document.getElementById('load-test-icon').className = 'fa-solid fa-stop text-red-400';
+                addLog('压力测试已停止', 'warning', 'load-test');
+            } catch (e) {
+                console.error('停止失败:', e);
+            }
+            resetLoadTestUI();
+        }
+
+        function viewLoadTestReport() {
+            if (currentLoadTestId) {
+                window.open(`/api/load-test/${currentLoadTestId}/report`, '_blank');
+            }
+        }
+
+        function resetLoadTestUI() {
+            document.getElementById('btn-start-load-test').disabled = false;
+            document.getElementById('btn-start-load-test').innerHTML = '<i class="fa-solid fa-play"></i> 启动压测';
+            document.getElementById('btn-stop-load-test').classList.add('hidden');
+        }
+
+        function updateLoadTestProgress(data) {
+            document.getElementById('lt-requests').innerText = data.total_requests || 0;
+            document.getElementById('lt-failures').innerText = data.failed_requests || 0;
+            document.getElementById('lt-rps').innerText = (data.requests_per_second || 0).toFixed(1);
+            document.getElementById('lt-avg-time').innerText = (data.avg_response_time || 0).toFixed(0);
+        }
+
+        function onLoadTestComplete(data) {
+            document.getElementById('load-test-icon').className = 'fa-solid fa-check-circle text-green-400';
+            document.getElementById('load-test-state').innerText = '压测完成';
+            document.getElementById('btn-stop-load-test').classList.add('hidden');
+            document.getElementById('btn-view-load-report').classList.remove('hidden');
+            resetLoadTestUI();
+
+            const result = data.result;
+            addLog(`压测完成: ${result.total_requests} 请求, QPS=${result.requests_per_second}, 错误率=${result.error_rate}%`, 'success', 'load-test');
+        }
+
+        function onLoadTestError(data) {
+            document.getElementById('load-test-icon').className = 'fa-solid fa-times-circle text-red-400';
+            document.getElementById('load-test-state').innerText = '压测失败: ' + data.error;
+            resetLoadTestUI();
+            addLog('压测失败: ' + data.error, 'error', 'load-test');
         }
 
         // ============== Swagger 文件处理 ==============

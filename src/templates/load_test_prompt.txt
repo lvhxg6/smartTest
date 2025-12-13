@@ -1,0 +1,70 @@
+你是一个专业的性能测试工程师。请根据以下上下文生成 Locust 压测脚本。
+
+## 目标 API
+- Base URL: {base_url}
+- 认证方式: Bearer Token
+
+## Swagger 接口摘要
+{swagger_summary}
+
+## 功能测试结果
+- 通过的接口: {passed_endpoints}
+- 失败的接口: {failed_endpoints}
+
+## 探测到的真实数据
+```json
+{explored_data}
+```
+
+## 压测配置
+- 并发用户数: {concurrent_users}
+- 每秒启动用户数: {spawn_rate}
+- 持续时间: {duration} 秒
+- 目标接口: {target_endpoints}
+- 仅测试通过的接口: {only_passed}
+
+## 要求
+1. 在当前目录生成 locustfile.py 文件
+2. 继承 HttpUser 类，设置 wait_time = between(0.5, 2)
+3. 在 on_start 中设置认证头和 SSL 配置 (verify=False)
+4. 为每个目标接口创建 @task，权重分配原则：
+   - GET 接口权重高 (5)
+   - POST/PUT 接口权重中 (2)
+   - DELETE 接口权重低 (1)
+5. 使用探测到的真实数据（如 ID、参数值）
+6. 使用 catch_response=True 进行响应验证
+7. 添加适当的中文注释
+
+## 生成的脚本示例结构
+```python
+from locust import HttpUser, task, between
+import urllib3
+
+urllib3.disable_warnings()
+
+class APIUser(HttpUser):
+    wait_time = between(0.5, 2)
+
+    def on_start(self):
+        self.client.headers = {
+            "Content-Type": "application/json",
+            "authorization": "Bearer ..."
+        }
+        self.client.verify = False
+
+    @task(5)
+    def get_list(self):
+        """获取列表"""
+        with self.client.get("/api/items", catch_response=True) as response:
+            if response.status_code == 200:
+                response.success()
+            else:
+                response.failure(f"状态码: {response.status_code}")
+
+    @task(2)
+    def create_item(self):
+        """创建项目"""
+        self.client.post("/api/items", json={"name": "test"})
+```
+
+请直接生成 locustfile.py 文件，不需要其他说明。

@@ -21,3 +21,6 @@ rich>=13.0
 
 # HTTP requests for testing
 requests>=2.31
+
+# Load Testing
+locust>=2.20.0

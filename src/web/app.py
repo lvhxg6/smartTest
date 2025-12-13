@@ -22,7 +22,8 @@ from flask import Flask, render_template, request, jsonify, send_file, send_from
 from flask_socketio import SocketIO, emit
 
 from ..core import InputParser, WorkflowEngine, WorkflowConfig, WorkflowState
-from ..models import FinalReport
+from ..core.load_test_runner import LoadTestRunner
+from ..models import FinalReport, LoadTestConfig, LoadTestResult, LoadTestStatus
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +40,9 @@ socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # 任务存储 (内存)
 tasks: Dict[str, Dict[str, Any]] = {}
+
+# 压测任务存储 (内存)
+load_tests: Dict[str, Dict[str, Any]] = {}
 
 
 class TaskManager:
@@ -370,6 +374,217 @@ def api_cancel(task_id: str):
         return jsonify({'message': 'Task cancellation requested'}), 200
 
     return jsonify({'error': 'Cancel event not available'}), 400
+
+
+# ============== 压力测试 API ==============
+
+def run_load_test_task(load_test_id: str, task_id: str, config: LoadTestConfig, cancel_event: threading.Event) -> None:
+    """在后台线程中运行压力测试"""
+    try:
+        task = tasks.get(task_id)
+        if not task:
+            raise ValueError(f"功能测试任务不存在: {task_id}")
+
+        output_dir = task.get('output_dir')
+        if not output_dir:
+            raise ValueError("功能测试输出目录不存在")
+
+        params = task.get('params', {})
+        base_url = params.get('base_url')
+        auth_token = params.get('auth_token')
+        swagger_content = params.get('swagger_content')
+
+        if not base_url or not swagger_content:
+            raise ValueError("缺少必要参数: base_url 或 swagger_content")
+
+        load_tests[load_test_id]['status'] = 'running'
+
+        # 进度回调
+        def on_progress(progress):
+            socketio.emit('load_test_progress', {
+                'load_test_id': load_test_id,
+                **progress.to_dict()
+            }, namespace='/ws')
+
+        # 日志回调
+        def on_log(message):
+            socketio.emit('load_test_log', {
+                'load_test_id': load_test_id,
+                'message': message
+            }, namespace='/ws')
+
+        # 创建 runner 并执行
+        runner = LoadTestRunner(
+            config=config,
+            base_url=base_url,
+            auth_token=auth_token,
+            on_progress=on_progress,
+            on_log=on_log,
+            cancel_event=cancel_event
+        )
+
+        load_tests[load_test_id]['runner'] = runner
+        result = runner.run(output_dir, swagger_content)
+
+        # 保存结果
+        load_tests[load_test_id]['result'] = result.to_dict()
+        load_tests[load_test_id]['status'] = result.status.value
+
+        # 发送完成事件
+        socketio.emit('load_test_complete', {
+            'load_test_id': load_test_id,
+            'result': result.to_dict()
+        }, namespace='/ws')
+
+    except Exception as e:
+        logger.exception(f"Load test {load_test_id} failed")
+        load_tests[load_test_id]['status'] = 'failed'
+        load_tests[load_test_id]['error'] = str(e)
+        socketio.emit('load_test_error', {
+            'load_test_id': load_test_id,
+            'error': str(e)
+        }, namespace='/ws')
+
+
+@app.route('/api/load-test', methods=['POST'])
+def api_start_load_test():
+    """启动压力测试
+
+    Request Body:
+    {
+        "task_id": "功能测试任务ID",
+        "preset": "light|standard|heavy",  // 可选，预设配置
+        "concurrent_users": 50,            // 可选，自定义并发数
+        "spawn_rate": 10,                  // 可选，每秒启动用户数
+        "duration": 60,                    // 可选，持续时间(秒)
+        "only_passed": false               // 可选，仅测试通过的接口
+    }
+    """
+    try:
+        data = request.json
+
+        task_id = data.get('task_id')
+        if not task_id:
+            return jsonify({'error': 'task_id is required'}), 400
+
+        if task_id not in tasks:
+            return jsonify({'error': 'Task not found'}), 404
+
+        task = tasks[task_id]
+        if task.get('status') != 'completed':
+            return jsonify({'error': '功能测试尚未完成'}), 400
+
+        # 解析配置
+        preset = data.get('preset')
+        if preset:
+            config = LoadTestConfig.from_preset(preset)
+        else:
+            config = LoadTestConfig(
+                concurrent_users=data.get('concurrent_users', 50),
+                spawn_rate=data.get('spawn_rate', 10),
+                duration=data.get('duration', 60),
+                only_passed=data.get('only_passed', False)
+            )
+
+        # 创建压测任务
+        load_test_id = str(uuid.uuid4())[:8]
+        cancel_event = threading.Event()
+
+        load_tests[load_test_id] = {
+            'id': load_test_id,
+            'task_id': task_id,
+            'status': 'pending',
+            'config': config.to_dict(),
+            'created_at': datetime.now().isoformat(),
+            'cancel_event': cancel_event
+        }
+
+        # 启动后台任务
+        thread = threading.Thread(
+            target=run_load_test_task,
+            args=(load_test_id, task_id, config, cancel_event)
+        )
+        thread.daemon = True
+        load_tests[load_test_id]['thread'] = thread
+        thread.start()
+
+        return jsonify({
+            'load_test_id': load_test_id,
+            'status': 'started',
+            'config': config.to_dict(),
+            'message': '压力测试已启动'
+        })
+
+    except ValueError as e:
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logger.exception("Failed to start load test")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/load-test/<load_test_id>/status')
+def api_load_test_status(load_test_id: str):
+    """查询压测状态"""
+    if load_test_id not in load_tests:
+        return jsonify({'error': 'Load test not found'}), 404
+
+    load_test = load_tests[load_test_id]
+    response = {
+        'load_test_id': load_test_id,
+        'task_id': load_test.get('task_id'),
+        'status': load_test.get('status'),
+        'config': load_test.get('config'),
+        'created_at': load_test.get('created_at')
+    }
+
+    if load_test.get('result'):
+        response['result'] = load_test['result']
+
+    if load_test.get('error'):
+        response['error'] = load_test['error']
+
+    return jsonify(response)
+
+
+@app.route('/api/load-test/<load_test_id>/stop', methods=['POST'])
+def api_stop_load_test(load_test_id: str):
+    """停止压测"""
+    if load_test_id not in load_tests:
+        return jsonify({'error': 'Load test not found'}), 404
+
+    load_test = load_tests[load_test_id]
+
+    # 设置取消事件
+    cancel_event = load_test.get('cancel_event')
+    if cancel_event:
+        cancel_event.set()
+
+    # 调用 runner 的 stop 方法
+    runner = load_test.get('runner')
+    if runner:
+        runner.stop()
+
+    load_test['status'] = 'stopped'
+    return jsonify({'message': '压测已停止'})
+
+
+@app.route('/api/load-test/<load_test_id>/report')
+def api_load_test_report(load_test_id: str):
+    """获取压测报告"""
+    if load_test_id not in load_tests:
+        return jsonify({'error': 'Load test not found'}), 404
+
+    load_test = load_tests[load_test_id]
+    result = load_test.get('result')
+
+    if not result:
+        return jsonify({'error': '压测尚未完成'}), 400
+
+    report_path = result.get('report_path')
+    if report_path and Path(report_path).exists():
+        return send_file(report_path, as_attachment=False)
+
+    return jsonify({'error': '报告文件不存在'}), 404
 
 
 # ============== WebSocket 事件 ==============
