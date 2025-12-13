@@ -269,6 +269,34 @@ class WorkflowEngine:
 
         self._log("info", "planning", f"规划完成，用例文档已生成")
 
+    def _fix_llm_json_syntax(self, json_text: str) -> str:
+        """修复 LLM 生成的常见 JSON 语法错误
+
+        处理的问题:
+        - JavaScript 语法如 "A".repeat(100) -> 替换为实际的重复字符串
+        - 尾部多余逗号
+        """
+        import re
+
+        # 修复 "X".repeat(N) 语法 -> 实际的重复字符串
+        # 匹配模式: "单个字符".repeat(数字)
+        repeat_pattern = r'"([^"]{1,3})"\.repeat\((\d+)\)'
+
+        def replace_repeat(match):
+            char = match.group(1)
+            count = int(match.group(2))
+            # 限制最大长度，避免生成过大的字符串
+            max_count = min(count, 1000)
+            return '"' + (char * max_count) + '"'
+
+        fixed_text = re.sub(repeat_pattern, replace_repeat, json_text)
+
+        # 修复尾部多余逗号 (trailing comma)
+        # 匹配 ,] 或 ,} 并移除逗号
+        fixed_text = re.sub(r',(\s*[}\]])', r'\1', fixed_text)
+
+        return fixed_text
+
     def _parse_business_analysis(self, output_path: Path) -> None:
         """解析业务分析结果，更新 context
 
@@ -283,7 +311,23 @@ class WorkflowEngine:
             return
 
         try:
-            analysis_data = json.loads(analysis_file.read_text(encoding='utf-8'))
+            json_text = analysis_file.read_text(encoding='utf-8')
+
+            # 第一次尝试：直接解析
+            try:
+                analysis_data = json.loads(json_text)
+            except json.JSONDecodeError as e:
+                # 第二次尝试：修复常见 LLM 语法错误后重新解析
+                self._log("warning", "planning",
+                          f"JSON 解析失败，尝试修复 LLM 语法错误: {e}")
+                fixed_text = self._fix_llm_json_syntax(json_text)
+
+                # 保存修复后的文件（用于调试）
+                fixed_file = output_path / "analysis_result_fixed.json"
+                fixed_file.write_text(fixed_text, encoding='utf-8')
+
+                analysis_data = json.loads(fixed_text)
+                self._log("info", "planning", "JSON 语法修复成功")
 
             # 更新 context
             if 'scenarios' in analysis_data:
