@@ -19,7 +19,7 @@ from typing import Optional, List, Dict, Any, Callable
 
 from ..models import (
     TaskContext, FinalReport, BugReport, TestCaseDoc,
-    TestCaseResult, TestStatus, HealingType, BugSeverity
+    TestCaseResult, TestStatus, HealingType, BugSeverity, TestMode
 )
 from .cli_adapter import CLIAdapter, CLISession, CLIConfig, ExecutionMode
 from .prompt_builder import PromptBuilder
@@ -200,12 +200,27 @@ class WorkflowEngine:
         """Phase 1: 规划"""
         self._log("info", "planning", "开始规划测试场景...")
 
+        # 显示测试模式
+        mode_desc = {
+            TestMode.INTERFACE: "接口测试 (仅 Swagger)",
+            TestMode.BUSINESS: "业务测试 (Swagger + PRD，自动生成数据)",
+            TestMode.COMPLETE: "完整测试 (Swagger + PRD + 测试数据)"
+        }
+        current_mode = self.context.test_mode
+        self._log("info", "planning", f"测试模式: {mode_desc.get(current_mode, current_mode.value)}")
+
+        # 显示输入文件统计
+        if self.context.has_prd:
+            self._log("info", "planning", "PRD 文档: 已加载")
+        if self.context.has_test_data:
+            self._log("info", "planning", f"测试数据: {len(self.context.test_data_files)} 个文件")
+
         # 预创建输出目录，确保 CLI 可以写入文件
         output_path = Path(self.context.output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
         self._log("info", "planning", f"输出目录: {output_path}")
 
-        # 静态依赖分析
+        # 静态依赖分析 (接口测试模式和业务测试模式都需要)
         self._log("info", "planning", "执行静态依赖分析...")
         analysis = self.dependency_analyzer.analyze(self.context.swagger)
         analysis.save(str(output_path))
@@ -222,14 +237,18 @@ class WorkflowEngine:
                 f"探测完成，提取字段: {len(exploration.extracted_values)}"
             )
 
-        # 构建 Prompt
+        # 构建 Prompt (根据测试模式自动选择)
         prompt_pkg = self.prompt_builder.build_plan_prompt(self.context)
 
         # 更新 CLI 权限
         self.cli_adapter.config.allowed_tools = prompt_pkg.allowed_tools
 
         # 调用 CLI
-        self._log("info", "planning", "调用 CLI 分析 Swagger...")
+        if current_mode in (TestMode.BUSINESS, TestMode.COMPLETE):
+            self._log("info", "planning", "调用 CLI 分析 PRD + Swagger...")
+        else:
+            self._log("info", "planning", "调用 CLI 分析 Swagger...")
+
         result = self.cli_session.start(prompt_pkg.prompt)
 
         if not result.success:
@@ -244,7 +263,52 @@ class WorkflowEngine:
                 raise WorkflowCancelled("任务已取消")
             raise RuntimeError(f"规划阶段失败: {detail or '未知错误'}{extra}")
 
+        # 解析业务分析结果 (如果是业务测试模式)
+        if current_mode in (TestMode.BUSINESS, TestMode.COMPLETE):
+            self._parse_business_analysis(output_path)
+
         self._log("info", "planning", f"规划完成，用例文档已生成")
+
+    def _parse_business_analysis(self, output_path: Path) -> None:
+        """解析业务分析结果，更新 context
+
+        从 analysis_result.json 中读取:
+        - scenarios: 业务场景
+        - rules: 业务规则
+        - data_mapping: 数据映射
+        """
+        analysis_file = output_path / "analysis_result.json"
+        if not analysis_file.exists():
+            self._log("warning", "planning", "未找到业务分析结果文件，跳过解析")
+            return
+
+        try:
+            analysis_data = json.loads(analysis_file.read_text(encoding='utf-8'))
+
+            # 更新 context
+            if 'scenarios' in analysis_data:
+                self.context.scenarios = analysis_data['scenarios']
+                self._log("info", "planning",
+                          f"识别业务场景: {len(self.context.scenarios)} 个")
+
+            if 'rules' in analysis_data:
+                self.context.business_rules = analysis_data['rules']
+                self._log("info", "planning",
+                          f"提取业务规则: {len(self.context.business_rules)} 条")
+
+            if 'data_mapping' in analysis_data:
+                self.context.data_mapping = analysis_data['data_mapping']
+                self._log("info", "planning",
+                          f"数据映射: {len(self.context.data_mapping)} 个接口")
+
+            # 统计信息
+            stats = analysis_data.get('statistics', {})
+            if stats:
+                self._log("info", "planning",
+                          f"预计测试用例: {stats.get('estimated_cases', '未知')} 个")
+
+        except Exception as e:
+            self._log("warning", "planning", f"解析业务分析结果失败: {e}")
 
     def _phase_generation(self) -> None:
         """Phase 2: 生成"""

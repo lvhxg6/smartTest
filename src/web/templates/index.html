@@ -89,15 +89,18 @@
                     </div>
                 </div>
 
-                <!-- 2. 灵魂 (业务规则) -->
-                <div class="flex-1 flex flex-col min-h-0">
+                <!-- 2. PRD 文档 (业务测试模式) -->
+                <div>
                     <label class="flex items-center justify-between text-xs font-bold text-brand-accent mb-2">
-                        <span>2. 灵魂层 (The Soul)</span>
-                        <span class="text-[10px] font-normal text-slate-500">可选 - 业务断言规则</span>
+                        <span>2. PRD 文档 (The Soul)</span>
+                        <span class="text-[10px] font-normal text-slate-500">可选 - 业务测试模式</span>
                     </label>
-                    <textarea id="requirements" class="w-full flex-1 min-h-[80px] bg-slate-900 border border-slate-800 rounded p-2 text-[11px] text-slate-300 focus:outline-none focus:border-brand-accent transition resize-none placeholder-slate-600 font-mono leading-relaxed"
-                    placeholder="# 业务断言规则 (可选)
-- 库存扣减后必须生成流水记录"></textarea>
+                    <div id="prd-drop" class="border border-dashed border-slate-700 rounded bg-slate-900/50 p-3 text-center hover:border-brand-accent hover:bg-slate-800 transition cursor-pointer group flex items-center justify-center gap-2"
+                         ondrop="handlePrdDrop(event)" ondragover="event.preventDefault()">
+                        <i class="fa-solid fa-file-lines text-lg text-slate-600 group-hover:text-brand-accent transition" id="prd-icon"></i>
+                        <p class="text-[10px] text-slate-500" id="prd-hint">拖拽 <code class="text-slate-400">.md/.docx/.txt</code></p>
+                        <input type="file" id="prd-file" accept=".md,.docx,.txt,.markdown" class="hidden" onchange="handlePrdFile(event)">
+                    </div>
                 </div>
 
                 <!-- 3. 环境配置 -->
@@ -118,15 +121,29 @@
                     </div>
                 </div>
 
-                <!-- 4. 业务数据 -->
+                <!-- 4. 测试数据文件 (完整测试模式) -->
                 <div>
                     <label class="flex items-center justify-between text-xs font-bold text-brand-accent mb-2">
-                        <span>4. 业务数据 (Business Data)</span>
-                        <span class="text-[10px] font-normal text-slate-500">可选 - 测试数据</span>
+                        <span>4. 测试数据 (Test Data)</span>
+                        <span class="text-[10px] font-normal text-slate-500">可选 - 完整测试模式</span>
                     </label>
-                    <textarea id="data-assets" class="w-full h-14 bg-slate-900 border border-slate-800 rounded p-2 text-[11px] text-slate-300 focus:outline-none focus:border-brand-accent transition resize-none placeholder-slate-600 font-mono leading-relaxed"
-                    placeholder="# 测试数据 (可选)
-| SKU001 | 100 | 正常库存 |"></textarea>
+                    <div id="testdata-drop" class="border border-dashed border-slate-700 rounded bg-slate-900/50 p-3 text-center hover:border-brand-accent hover:bg-slate-800 transition cursor-pointer group flex items-center justify-center gap-2"
+                         ondrop="handleTestDataDrop(event)" ondragover="event.preventDefault()">
+                        <i class="fa-solid fa-table text-lg text-slate-600 group-hover:text-brand-accent transition" id="testdata-icon"></i>
+                        <p class="text-[10px] text-slate-500" id="testdata-hint">拖拽 <code class="text-slate-400">.xlsx/.csv</code> (支持多文件)</p>
+                        <input type="file" id="testdata-file" accept=".xlsx,.csv" multiple class="hidden" onchange="handleTestDataFile(event)">
+                    </div>
+                    <div id="testdata-list" class="mt-1 space-y-0.5 text-[10px]"></div>
+                </div>
+
+                <!-- 测试模式显示 -->
+                <div id="test-mode-display" class="bg-slate-900/80 border border-slate-700 rounded p-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-info-circle text-slate-500"></i>
+                        <span class="text-[11px] text-slate-400">测试模式: </span>
+                        <span id="current-test-mode" class="text-[11px] font-semibold text-cyan-400">接口测试</span>
+                    </div>
+                    <p id="test-mode-desc" class="text-[10px] text-slate-500 mt-1 pl-5">仅上传 Swagger 时，执行接口参数边界测试</p>
                 </div>
 
                 <!-- 探测开关 + 启动按钮 -->
@@ -297,6 +314,8 @@
         let socket = null;
         let currentTaskId = null;
         let swaggerContent = null;
+        let prdContent = null;           // PRD 文档内容
+        let testDataFiles = [];          // 测试数据文件列表 [{name, content}]
 
         // 计时器状态
         let timerInterval = null;
@@ -894,6 +913,132 @@
             document.getElementById('swagger-file').click();
         });
 
+        // ============== PRD 文件处理 ==============
+        function handlePrdDrop(event) {
+            event.preventDefault();
+            const file = event.dataTransfer.files[0];
+            if (file) {
+                readPrdFile(file);
+            }
+        }
+
+        function handlePrdFile(event) {
+            const file = event.target.files[0];
+            if (file) {
+                readPrdFile(file);
+            }
+        }
+
+        function readPrdFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                prdContent = e.target.result;
+                document.getElementById('prd-icon').className = 'fa-solid fa-check text-lg text-green-500';
+                document.getElementById('prd-hint').innerHTML = `<span class="text-green-400">${file.name}</span>`;
+                updateTestModeDisplay();
+            };
+            reader.readAsText(file);
+        }
+
+        // 点击选择 PRD 文件
+        document.getElementById('prd-drop').addEventListener('click', () => {
+            document.getElementById('prd-file').click();
+        });
+
+        // ============== 测试数据文件处理 ==============
+        function handleTestDataDrop(event) {
+            event.preventDefault();
+            const files = Array.from(event.dataTransfer.files);
+            files.forEach(file => addTestDataFile(file));
+        }
+
+        function handleTestDataFile(event) {
+            const files = Array.from(event.target.files);
+            files.forEach(file => addTestDataFile(file));
+        }
+
+        function addTestDataFile(file) {
+            // 检查文件格式
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (!['xlsx', 'csv'].includes(ext)) {
+                alert(`不支持的文件格式: ${file.name}，仅支持 .xlsx 和 .csv`);
+                return;
+            }
+
+            // 检查是否已存在
+            if (testDataFiles.some(f => f.name === file.name)) {
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                testDataFiles.push({
+                    name: file.name,
+                    content: e.target.result
+                });
+                updateTestDataList();
+                updateTestModeDisplay();
+            };
+            reader.readAsDataURL(file);  // 使用 base64 编码
+        }
+
+        function removeTestDataFile(name) {
+            testDataFiles = testDataFiles.filter(f => f.name !== name);
+            updateTestDataList();
+            updateTestModeDisplay();
+        }
+
+        function updateTestDataList() {
+            const container = document.getElementById('testdata-list');
+            if (testDataFiles.length === 0) {
+                container.innerHTML = '';
+                document.getElementById('testdata-icon').className = 'fa-solid fa-table text-lg text-slate-600 group-hover:text-brand-accent transition';
+                document.getElementById('testdata-hint').innerHTML = '拖拽 <code class="text-slate-400">.xlsx/.csv</code> (支持多文件)';
+                return;
+            }
+
+            document.getElementById('testdata-icon').className = 'fa-solid fa-check text-lg text-green-500';
+            document.getElementById('testdata-hint').innerHTML = `<span class="text-green-400">${testDataFiles.length} 个文件</span>`;
+
+            container.innerHTML = testDataFiles.map(f => `
+                <div class="flex items-center gap-2 text-slate-400 bg-slate-800/50 px-2 py-1 rounded">
+                    <i class="fa-solid fa-file-excel text-green-500"></i>
+                    <span class="flex-1 truncate">${f.name}</span>
+                    <button onclick="removeTestDataFile('${f.name}')" class="text-red-400 hover:text-red-300">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // 点击选择测试数据文件
+        document.getElementById('testdata-drop').addEventListener('click', () => {
+            document.getElementById('testdata-file').click();
+        });
+
+        // ============== 测试模式显示更新 ==============
+        function updateTestModeDisplay() {
+            const modeEl = document.getElementById('current-test-mode');
+            const descEl = document.getElementById('test-mode-desc');
+
+            const hasPrd = prdContent && prdContent.trim();
+            const hasTestData = testDataFiles.length > 0;
+
+            if (hasPrd && hasTestData) {
+                modeEl.textContent = '完整测试';
+                modeEl.className = 'text-[11px] font-semibold text-emerald-400';
+                descEl.textContent = 'PRD + 测试数据：业务场景测试 + 规则验证 + 数据驱动测试';
+            } else if (hasPrd) {
+                modeEl.textContent = '业务测试';
+                modeEl.className = 'text-[11px] font-semibold text-amber-400';
+                descEl.textContent = 'PRD 文档：自动识别业务场景和规则，智能生成测试数据';
+            } else {
+                modeEl.textContent = '接口测试';
+                modeEl.className = 'text-[11px] font-semibold text-cyan-400';
+                descEl.textContent = '仅 Swagger：执行接口参数边界测试和依赖分析';
+            }
+        }
+
         // ============== 启动任务 ==============
         async function startMission() {
             // 验证输入
@@ -935,6 +1080,19 @@
             addLog('正在启动任务...', 'info', 'init');
             addLog(`依赖探测: ${document.getElementById('enable-exploration').checked ? '开启' : '关闭'}`, 'info', 'init');
 
+            // 显示测试模式
+            const hasPrd = prdContent && prdContent.trim();
+            const hasTestData = testDataFiles.length > 0;
+            let modeLog = '测试模式: ';
+            if (hasPrd && hasTestData) {
+                modeLog += '完整测试 (PRD + 测试数据)';
+            } else if (hasPrd) {
+                modeLog += '业务测试 (PRD 文档)';
+            } else {
+                modeLog += '接口测试 (仅 Swagger)';
+            }
+            addLog(modeLog, 'info', 'init');
+
             try {
                 const response = await fetch('/api/run', {
                     method: 'POST',
@@ -943,8 +1101,8 @@
                         swagger: swaggerContent,
                         base_url: baseUrl,
                         auth_token: document.getElementById('auth-token').value.trim() || null,
-                        requirements: document.getElementById('requirements').value.trim() || null,
-                        data_assets: document.getElementById('data-assets').value.trim() || null,
+                        prd_document: prdContent || null,
+                        test_data_files: testDataFiles.map(f => f.content),
                         enable_exploration: document.getElementById('enable-exploration').checked
                     })
                 });

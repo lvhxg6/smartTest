@@ -24,3 +24,7 @@ requests>=2.31
 
 # Load Testing
 locust>=2.20.0
+
+# Document Parsing (Business Mode)
+python-docx>=1.0.0      # Word 文档解析
+openpyxl>=3.1.0         # Excel 文件解析

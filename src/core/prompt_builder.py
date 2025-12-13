@@ -12,6 +12,7 @@ from datetime import datetime
 from collections import defaultdict
 
 from ..models import TaskContext, TestMode, ErrorInfo
+from .data_loader import DataLoader
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +56,21 @@ class PromptBuilder:
         return content
 
     def build_plan_prompt(self, context: TaskContext) -> PromptPackage:
-        """构建规划阶段 Prompt (Phase 1)"""
+        """构建规划阶段 Prompt (Phase 1)
+
+        根据测试模式自动选择:
+        - INTERFACE: 使用 plan_prompt.txt (接口测试)
+        - BUSINESS/COMPLETE: 使用 business_plan_prompt.txt (业务测试)
+        """
+        # 业务测试模式使用专用 Prompt
+        if context.test_mode in (TestMode.BUSINESS, TestMode.COMPLETE):
+            return self._build_business_plan_prompt(context)
+
+        # 接口测试模式使用原有 Prompt
+        return self._build_interface_plan_prompt(context)
+
+    def _build_interface_plan_prompt(self, context: TaskContext) -> PromptPackage:
+        """构建接口测试模式 Prompt (原有逻辑)"""
         template = self._load_template("plan_prompt")
 
         # 根据模式决定内容
@@ -113,6 +128,78 @@ class PromptBuilder:
             prompt=prompt,
             allowed_tools=STANDARD_TOOLS,
             phase="planning"
+        )
+
+    def _build_business_plan_prompt(self, context: TaskContext) -> PromptPackage:
+        """构建业务测试模式 Prompt (BUSINESS / COMPLETE)
+
+        从 PRD 文档识别业务场景和规则，匹配测试数据。
+        """
+        template = self._load_template("business_plan_prompt")
+
+        # 获取 PRD 内容
+        prd_content = context.prd_document or context.requirements or ""
+        if not prd_content:
+            logger.warning("业务测试模式但未提供 PRD 文档，回退到接口测试模式")
+            return self._build_interface_plan_prompt(context)
+
+        # 测试数据部分
+        test_data_section = ""
+        test_data_summary = "无测试数据"
+
+        if context.test_data_files:
+            try:
+                test_data = DataLoader.load_multiple(context.test_data_files)
+                test_data_summary = DataLoader.summarize_for_prompt(test_data)
+                test_data_section = f"\n### 测试数据\n{test_data_summary}"
+            except Exception as e:
+                logger.warning(f"加载测试数据失败: {e}")
+                test_data_section = f"\n### 测试数据\n加载失败: {e}"
+
+        # 数据匹配部分
+        data_mapping_section = """## 3.1 测试数据智能匹配
+
+如有上传测试数据，请执行以下匹配:
+
+1. **列名匹配**: 将测试数据的列名与 Swagger 接口参数进行匹配
+2. **数据集命名匹配**: 检查 Sheet 名或文件名是否包含接口相关关键词
+3. **输出匹配结果**:
+
+```json
+{
+  "data_mapping": {
+    "POST /users/register": {
+      "dataset": "用户注册",
+      "columns": ["username", "email", "phone"],
+      "row_count": 12,
+      "match_score": 0.85
+    }
+  }
+}
+```
+
+如无测试数据上传，跳过此步骤。"""
+
+        if not context.test_data_files:
+            data_mapping_section = "无测试数据上传，跳过数据匹配步骤。"
+
+        format_args = {
+            "prd_content": prd_content[:15000],  # 限制 PRD 长度
+            "swagger_content": context.swagger.raw_content,
+            "test_data_section": test_data_section,
+            "base_url": context.config.base_url,
+            "auth_token": context.config.auth_token or "",
+            "output_dir": context.output_dir,
+            "test_mode": context.test_mode.value,
+            "data_mapping_section": data_mapping_section
+        }
+
+        prompt = template.format_map(defaultdict(str, format_args))
+
+        return PromptPackage(
+            prompt=prompt,
+            allowed_tools=STANDARD_TOOLS,
+            phase="planning_business"
         )
 
     def build_generate_prompt(self, context: TaskContext) -> PromptPackage:

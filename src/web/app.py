@@ -123,11 +123,25 @@ def run_workflow_task(task_id: str, params: Dict[str, Any], cancel_event: thread
             auth_token=params.get('auth_token'),
             requirements_input=params.get('requirements'),
             data_assets_input=params.get('data_assets'),
+            prd_input=params.get('prd_document'),
+            test_data_inputs=params.get('test_data_files') or None,
             output_dir=output_dir
         )
 
         manager.emit_log("info", "init", f"Swagger: {context.swagger.title} ({context.swagger.endpoint_count} 端点)")
-        manager.emit_log("info", "init", f"测试模式: {context.test_mode.value}")
+
+        # 显示测试模式
+        mode_desc = {
+            "interface": "接口测试 (仅 Swagger)",
+            "business": "业务测试 (Swagger + PRD)",
+            "complete": "完整测试 (Swagger + PRD + 测试数据)"
+        }
+        manager.emit_log("info", "init", f"测试模式: {mode_desc.get(context.test_mode.value, context.test_mode.value)}")
+
+        if context.has_prd:
+            manager.emit_log("info", "init", "PRD 文档: 已加载")
+        if context.has_test_data:
+            manager.emit_log("info", "init", f"测试数据: {len(context.test_data_files)} 个文件")
 
         # 配置工作流
         workflow_config = WorkflowConfig(
@@ -202,10 +216,18 @@ def api_run():
     {
         "swagger": "<swagger json content or file path>",
         "base_url": "https://api.example.com",
-        "auth_token": "Bearer xxx",  // optional
-        "requirements": "...",        // optional
-        "data_assets": "..."          // optional
+        "auth_token": "Bearer xxx",       // optional
+        "requirements": "...",             // optional (兼容旧版)
+        "data_assets": "...",              // optional (兼容旧版)
+        "prd_document": "...",             // optional (PRD 文档内容)
+        "test_data_files": ["path1", ...], // optional (测试数据文件路径)
+        "enable_exploration": false        // optional
     }
+
+    测试模式根据输入自动判断:
+    - 仅 Swagger → INTERFACE (接口测试)
+    - Swagger + PRD → BUSINESS (业务测试，自动生成数据)
+    - Swagger + PRD + 测试数据 → COMPLETE (完整测试)
     """
     try:
         data = request.json
@@ -225,6 +247,8 @@ def api_run():
             'auth_token': data.get('auth_token'),
             'requirements': data.get('requirements'),
             'data_assets': data.get('data_assets'),
+            'prd_document': data.get('prd_document'),
+            'test_data_files': data.get('test_data_files', []),
             'enable_exploration': bool(data.get('enable_exploration'))
         }
 
