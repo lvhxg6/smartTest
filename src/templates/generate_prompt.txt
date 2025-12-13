@@ -20,6 +20,12 @@
 {requirements_content}
 {data_content}
 
+{scenarios_block}
+
+{rules_block}
+
+{data_mapping_block}
+
 ## 环境配置
 - Base URL: {base_url}
 - Auth Token: {auth_token}
@@ -197,6 +203,102 @@ class TestXxxAPI:
             entity = data.get("entity")
             assert entity is None or entity == {{}}, f"删除后数据仍存在: {{entity}}"
 ```
+
+---
+
+## 业务测试生成要求（重要）
+
+如果上方存在「业务场景」、「业务规则」或「测试数据映射」，必须生成对应的业务测试代码。
+
+### 场景测试（端到端流程）
+
+如果「业务场景」非空，必须为每个场景生成端到端测试：
+
+```python
+# TestCase: TC-SCENARIO-001
+@pytest.mark.p0
+class TestOrderFlow:
+    """业务场景: 订单完整流程"""
+
+    def test_order_flow_end_to_end(self, api_client, base_url):
+        """订单流程: 创建→支付→发货→收货"""
+        # Step 1: 创建订单
+        order_resp = api_client.post(f"{{base_url}}/orders", json={{
+            "productId": "prod-001",
+            "quantity": 2
+        }})
+        assert order_resp.status_code == 200
+        order_id = order_resp.json().get("entity", {{}}).get("orderId")
+        assert order_id is not None, "订单创建应返回orderId"
+
+        # Step 2: 支付订单
+        pay_resp = api_client.post(f"{{base_url}}/orders/{{order_id}}/pay")
+        assert pay_resp.status_code == 200
+        assert pay_resp.json().get("entity", {{}}).get("status") == "PAID"
+
+        # Step 3: 发货
+        ship_resp = api_client.post(f"{{base_url}}/orders/{{order_id}}/ship")
+        assert ship_resp.status_code == 200
+        assert ship_resp.json().get("entity", {{}}).get("status") == "SHIPPED"
+
+        # Step 4: 确认收货
+        receive_resp = api_client.post(f"{{base_url}}/orders/{{order_id}}/receive")
+        assert receive_resp.status_code == 200
+        assert receive_resp.json().get("entity", {{}}).get("status") == "COMPLETED"
+```
+
+### 业务规则测试
+
+如果「业务规则」非空，必须为每条规则生成验证测试：
+
+```python
+# TestCase: TC-RULE-001
+@pytest.mark.p0
+def test_discount_rule_100(self, api_client, base_url):
+    """业务规则验证: 满100减10"""
+    order_data = {{
+        "items": [{{"productId": "p1", "price": 60, "quantity": 2}}],
+        "subtotal": 120
+    }}
+    response = api_client.post(f"{{base_url}}/orders", json=order_data)
+    assert response.status_code == 200
+
+    result = response.json().get("entity", {{}})
+    # 验证业务规则: 120 满100减10 = 110
+    assert result.get("discount") == 10, f"期望折扣10，实际: {{result.get('discount')}}"
+    assert result.get("finalAmount") == 110, f"期望最终金额110，实际: {{result.get('finalAmount')}}"
+```
+
+### 数据驱动测试
+
+如果「测试数据映射」非空，使用 pytest 参数化从用户上传的测试数据生成测试：
+
+```python
+# 从用户上传的测试数据生成（示例）
+TEST_DATA_USER_REGISTER = [
+    {{"username": "test1", "email": "test1@xx.com", "phone": "13800001111", "expected_code": 200}},
+    {{"username": "", "email": "test2@xx.com", "phone": "13800002222", "expected_code": 400}},
+    {{"username": "test3", "email": "invalid-email", "phone": "13800003333", "expected_code": 400}},
+]
+
+# TestCase: TC-DATA-001
+@pytest.mark.p0
+@pytest.mark.parametrize("data", TEST_DATA_USER_REGISTER)
+def test_user_register_data_driven(self, api_client, base_url, data):
+    """数据驱动测试: 用户注册"""
+    response = api_client.post(f"{{base_url}}/users/register", json={{
+        "username": data["username"],
+        "email": data["email"],
+        "phone": data["phone"]
+    }})
+    assert response.status_code == data["expected_code"], \
+        f"用户 {{data['username']}} 注册期望 {{data['expected_code']}}，实际 {{response.status_code}}"
+```
+
+**重要**:
+- 场景测试文件命名: `test_scenario_*.py`
+- 规则测试文件命名: `test_rule_*.py`
+- 数据驱动测试文件命名: `test_data_*.py`
 
 ---
 

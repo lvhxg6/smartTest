@@ -191,7 +191,12 @@ class LoadTestRunner:
         explored_data: Dict[str, Any],
         test_results: Dict[str, Any]
     ) -> str:
-        """构建 LLM prompt"""
+        """构建 LLM prompt
+
+        根据配置实现智能筛选：
+        - only_passed=True: 仅压测功能测试通过的接口
+        - target_endpoints: 指定要压测的接口列表
+        """
         # 解析 Swagger 获取接口摘要
         try:
             swagger = json.loads(swagger_content)
@@ -216,12 +221,61 @@ class LoadTestRunner:
         if self.auth_token:
             clean_token = ''.join(c for c in self.auth_token if ord(c) < 128)
 
+        # 智能筛选：根据配置确定要压测的接口
+        target_endpoints = []
+        filter_note = ""
+
+        if getattr(self.config, 'only_passed', False) and test_results:
+            # 仅压测通过的接口
+            passed_tests = test_results.get('passed_endpoints', [])
+            if passed_tests:
+                target_endpoints = passed_tests
+                filter_note = f"""
+## 功能测试结果（智能筛选）
+- 总测试数: {test_results.get('total', 0)}
+- 通过数: {len(passed_tests)}
+- 失败数: {len(test_results.get('failed_endpoints', []))}
+- 通过率: {test_results.get('pass_rate', 0):.1%}
+
+**筛选模式**: 仅压测通过的接口 ({len(passed_tests)} 个)
+
+### 通过的测试用例
+{chr(10).join(f'- {t}' for t in passed_tests[:20])}
+{f'... 还有 {len(passed_tests) - 20} 个' if len(passed_tests) > 20 else ''}
+"""
+                logger.info(f"智能筛选: 仅压测 {len(passed_tests)} 个通过的接口")
+            else:
+                filter_note = "\n## 功能测试结果\n没有通过的测试用例，将压测所有接口。\n"
+                logger.warning("功能测试没有通过的用例，回退到压测所有接口")
+
+        elif getattr(self.config, 'target_endpoints', None):
+            # 使用指定的接口列表
+            target_endpoints = self.config.target_endpoints
+            filter_note = f"""
+## 指定压测接口
+仅压测以下指定的 {len(target_endpoints)} 个接口:
+{chr(10).join(f'- {e}' for e in target_endpoints)}
+"""
+            logger.info(f"使用指定接口: {len(target_endpoints)} 个")
+
+        elif test_results and test_results.get('total', 0) > 0:
+            # 有测试结果但不筛选
+            filter_note = f"""
+## 功能测试结果（参考）
+- 总测试数: {test_results.get('total', 0)}
+- 通过数: {len(test_results.get('passed_endpoints', []))}
+- 失败数: {len(test_results.get('failed_endpoints', []))}
+- 通过率: {test_results.get('pass_rate', 0):.1%}
+
+**筛选模式**: 压测所有接口
+"""
+
         prompt = f"""你是一个专业的性能测试工程师。请生成一个 Locust 压测脚本。
 
 ## 目标 API
 - Base URL: {self.base_url}
 - 认证 Token: {clean_token[:50]}... (已截断)
-
+{filter_note}
 ## 接口列表
 {chr(10).join(f'- {e}' for e in endpoints[:20])}
 {f'... 还有 {len(endpoints) - 20} 个接口' if len(endpoints) > 20 else ''}
@@ -234,10 +288,14 @@ class LoadTestRunner:
 ## 要求
 1. 在当前目录生成 locustfile.py 文件
 2. 继承 HttpUser 类
-3. 为主要接口创建 @task，GET 接口权重高，写接口权重低
-4. 使用探测到的真实 ID (如果有)
-5. 正确设置认证头和 SSL (verify=False)
-6. 使用 catch_response=True 进行响应验证
+3. {'仅为上述「通过的测试用例」相关接口创建 @task' if target_endpoints else '为主要接口创建 @task'}
+4. GET 接口权重高，写接口权重低
+5. 使用探测到的真实 ID (如果有)
+6. 正确设置认证头和 SSL (verify=False)
+7. 使用 catch_response=True 进行响应验证
+8. 并发用户: {self.config.concurrent_users}
+9. 生成速率: {self.config.spawn_rate}/秒
+10. 持续时间: {self.config.duration}秒
 
 请直接生成 locustfile.py 文件。"""
 
@@ -428,6 +486,57 @@ class APIUser(HttpUser):
         return result
 
     def _parse_test_results(self, xml_path: Path) -> Dict[str, Any]:
-        """解析 JUnit XML 测试结果"""
-        # 简化实现，返回空字典
-        return {}
+        """解析 JUnit XML 测试结果，提取通过/失败的接口
+
+        Returns:
+            Dict 包含:
+            - passed_endpoints: 通过的测试用例名称列表
+            - failed_endpoints: 失败的测试用例名称列表
+            - total: 总测试数
+            - pass_rate: 通过率
+        """
+        if not xml_path.exists():
+            logger.warning(f"测试结果文件不存在: {xml_path}")
+            return {"passed_endpoints": [], "failed_endpoints": [], "total": 0, "pass_rate": 0}
+
+        try:
+            import xml.etree.ElementTree as ET
+            tree = ET.parse(xml_path)
+            root = tree.getroot()
+
+            passed = []
+            failed = []
+
+            # 遍历所有 testcase 元素
+            for testcase in root.iter('testcase'):
+                name = testcase.get('name', '')
+                classname = testcase.get('classname', '')
+
+                # 构建完整测试标识
+                full_name = f"{classname}::{name}" if classname else name
+
+                # 检查是否有 failure 或 error 子元素
+                has_failure = testcase.find('failure') is not None
+                has_error = testcase.find('error') is not None
+                has_skipped = testcase.find('skipped') is not None
+
+                if has_failure or has_error:
+                    failed.append(full_name)
+                elif not has_skipped:  # 跳过的测试不计入
+                    passed.append(full_name)
+
+            total = len(passed) + len(failed)
+            pass_rate = len(passed) / max(total, 1)
+
+            logger.info(f"解析测试结果: {len(passed)} 通过, {len(failed)} 失败, 通过率 {pass_rate:.1%}")
+
+            return {
+                "passed_endpoints": passed,
+                "failed_endpoints": failed,
+                "total": total,
+                "pass_rate": pass_rate
+            }
+
+        except Exception as e:
+            logger.error(f"解析 JUnit XML 失败: {e}")
+            return {"passed_endpoints": [], "failed_endpoints": [], "total": 0, "pass_rate": 0}

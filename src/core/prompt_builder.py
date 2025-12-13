@@ -245,6 +245,68 @@ class PromptBuilder:
         if getattr(context, "exploration_data", None):
             exploration_block = context.exploration_data.to_prompt_block(limit=10)
 
+        # 新增：注入业务场景（从 PRD 识别）
+        scenarios_block = ""
+        if getattr(context, "scenarios", None) and context.scenarios:
+            scenarios_block = "## 业务场景（从 PRD 识别，必须生成对应测试）\n\n"
+            for s in context.scenarios:
+                name = s.get('name', '未命名场景')
+                priority = s.get('priority', 'P1')
+                steps = s.get('steps', [])
+                scenarios_block += f"### {name} [{priority}]\n"
+                if steps:
+                    scenarios_block += "步骤:\n"
+                    for i, step in enumerate(steps, 1):
+                        step_name = step.get('name', f'步骤{i}')
+                        step_api = step.get('api', '')
+                        expected = step.get('expected_status', '')
+                        scenarios_block += f"  {i}. {step_name}: `{step_api}`"
+                        if expected:
+                            scenarios_block += f" → 期望: {expected}"
+                        scenarios_block += "\n"
+                scenarios_block += "\n"
+            logger.info(f"已注入 {len(context.scenarios)} 个业务场景到生成 Prompt")
+
+        # 新增：注入业务规则（从 PRD 提取）
+        rules_block = ""
+        if getattr(context, "business_rules", None) and context.business_rules:
+            rules_block = "## 业务规则（从 PRD 提取，必须验证）\n\n"
+            for r in context.business_rules:
+                rule_id = r.get('id', 'RULE-XXX')
+                name = r.get('name', '未命名规则')
+                rule_type = r.get('type', 'UNKNOWN')
+                description = r.get('description', '')
+                related_api = r.get('related_api', '')
+                assertion = r.get('assertion', '')
+                rules_block += f"### {rule_id}: {name}\n"
+                rules_block += f"- 类型: {rule_type}\n"
+                rules_block += f"- 描述: {description}\n"
+                if related_api:
+                    rules_block += f"- 关联接口: `{related_api}`\n"
+                if assertion:
+                    rules_block += f"- 断言: `{assertion}`\n"
+                rules_block += "\n"
+            logger.info(f"已注入 {len(context.business_rules)} 条业务规则到生成 Prompt")
+
+        # 新增：注入测试数据映射
+        data_mapping_block = ""
+        if getattr(context, "data_mapping", None) and context.data_mapping:
+            data_mapping_block = "## 测试数据映射（用户上传的数据与接口的对应关系）\n\n"
+            for api, mapping in context.data_mapping.items():
+                dataset = mapping.get('dataset', mapping.get('sheet', ''))
+                columns = mapping.get('columns', [])
+                row_count = mapping.get('row_count', 0)
+                file_name = mapping.get('file', '')
+                data_mapping_block += f"### `{api}`\n"
+                data_mapping_block += f"- 数据集: {dataset}\n"
+                if file_name:
+                    data_mapping_block += f"- 文件: {file_name}\n"
+                data_mapping_block += f"- 数据量: {row_count} 条\n"
+                if columns:
+                    data_mapping_block += f"- 列: {', '.join(columns)}\n"
+                data_mapping_block += "\n"
+            logger.info(f"已注入 {len(context.data_mapping)} 个数据映射到生成 Prompt")
+
         format_args = {
             "testcases_file": testcases_file,
             "swagger_content": context.swagger.raw_content,
@@ -256,7 +318,11 @@ class PromptBuilder:
             "output_dir": context.output_dir,
             "dependency_analysis_block": analysis_block or "（本地依赖分析结果为空）",
             "exploration_block": exploration_block or "（未启用或未获取到探测数据）",
-            "explicit_dependencies_block": explicit_deps_block
+            "explicit_dependencies_block": explicit_deps_block,
+            # 新增：业务测试相关
+            "scenarios_block": scenarios_block,
+            "rules_block": rules_block,
+            "data_mapping_block": data_mapping_block
         }
 
         prompt = template.format_map(defaultdict(str, format_args))

@@ -426,10 +426,29 @@ class WorkflowEngine:
         if result.error_info is None:
             return
 
+        # 构建业务规则内容（优先使用 PRD，其次用 requirements）
+        business_context = ""
+        if getattr(self.context, "business_rules", None) and self.context.business_rules:
+            # 使用 Phase 1 提取的结构化规则
+            business_context = "## 业务规则（从 PRD 提取）\n"
+            for rule in self.context.business_rules:
+                rule_name = rule.get('name', '未命名规则')
+                rule_desc = rule.get('description', '')
+                rule_assertion = rule.get('assertion', '')
+                business_context += f"- {rule_name}: {rule_desc}\n"
+                if rule_assertion:
+                    business_context += f"  断言: {rule_assertion}\n"
+        elif getattr(self.context, "prd_document", None) and self.context.prd_document:
+            # 使用 PRD 原文（截取关键部分）
+            business_context = f"## PRD 文档摘要\n{self.context.prd_document[:5000]}"
+        elif self.context.requirements:
+            # 兼容旧版
+            business_context = self.context.requirements
+
         # 构建自愈 Prompt
         prompt_pkg = self.prompt_builder.build_heal_logic_prompt(
             result.error_info,
-            self.context.requirements
+            business_context
         )
         self.cli_adapter.config.allowed_tools = prompt_pkg.allowed_tools
 
