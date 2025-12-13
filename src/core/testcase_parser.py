@@ -28,15 +28,19 @@ class ParsedTestCase:
 class TestCaseParser:
     """测试用例文档解析器"""
 
-    # 匹配 API 节标题: ### API-01: GET /v1/config-templates
+    # 匹配 API 节标题，支持多种格式:
+    # - ### API-01: GET /v1/config-templates (旧格式)
+    # - ### API-001 GET /v3/config-templates 描述 (新格式)
     API_HEADER_PATTERN = re.compile(
-        r'^###\s+API-\d+:\s+(\w+)\s+(/\S+)',
+        r'^###\s+(?:API-\d+[:\s]+)?(\w+)\s+(/\S+)',
         re.MULTILINE
     )
 
-    # 匹配测试用例表格行: | TC-001 | 场景 | P0 | 测试数据 | 预期结果 | 数据来源 |
+    # 匹配测试用例表格行，支持多种用例 ID 格式:
+    # - TC-001 (旧格式)
+    # - API-001-01, SCN-001, RULE-001-01, DATA-001-01 (新格式)
     TESTCASE_ROW_PATTERN = re.compile(
-        r'^\|\s*(TC-\d+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|',
+        r'^\|\s*((?:TC|API|SCN|RULE|DATA)-[\d-]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|\s*([^|]+)\s*\|',
         re.MULTILINE
     )
 
@@ -93,15 +97,35 @@ class TestCaseParser:
             yield method, path, section_content
 
     def _parse_testcase_table(self, section_content: str, api: str) -> Dict[str, ParsedTestCase]:
-        """解析测试用例表格"""
+        """解析测试用例表格
+
+        支持多种表格格式：
+        - | TC-001 | 场景 | P0 | 测试数据 | 预期结果 |
+        - | API-001-01 | 场景 | 参数 | 预期结果 |
+        - | RULE-001-01 | 场景 | 输入 | 预期结果 |
+        """
         result: Dict[str, ParsedTestCase] = {}
 
         for match in self.TESTCASE_ROW_PATTERN.finditer(section_content):
             testcase_id = match.group(1).strip()
+            # 第2列通常是场景/名称
             scenario = match.group(2).strip()
-            priority = match.group(3).strip()
-            test_data = match.group(4).strip()
-            expected_result = match.group(5).strip()
+            # 第3列可能是优先级或参数
+            col3 = match.group(3).strip()
+            # 第4列通常是测试数据或预期结果
+            col4 = match.group(4).strip()
+
+            # 判断第3列是优先级还是参数
+            # 优先级格式: P0, P1, P2, P3
+            if col3 in ('P0', 'P1', 'P2', 'P3'):
+                priority = col3
+                test_data = col4
+                expected_result = ""  # 4列格式时预期结果在第4列
+            else:
+                # 非优先级格式，第3列是参数，第4列是预期结果
+                priority = "P1"  # 默认优先级
+                test_data = col3
+                expected_result = col4
 
             result[testcase_id] = ParsedTestCase(
                 testcase_id=testcase_id,
